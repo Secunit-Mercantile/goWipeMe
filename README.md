@@ -8,35 +8,8 @@
 
 ---
 
-## ⚠️ CRITICAL WARNINGS
-
-### **READ THIS BEFORE USING**
-
-- **ALL OPERATIONS ARE PERMANENT AND IRREVERSIBLE**
-- **DELETED DATA CANNOT BE RECOVERED**
-- **USE AT YOUR OWN RISK**
-
-### Before Running goWipeMe:
-
-✅ **BACKUP YOUR DATA** using:
-- macOS Time Machine
-- Cloud backups (iCloud, Google Drive, Dropbox, etc.)
-- External drive backups
-- System snapshots
-
-✅ **VERIFY YOUR BACKUPS** - Ensure you can restore from them
-
-✅ **UNDERSTAND WHAT WILL BE DELETED** - Review the dry-run/preview before confirming
-
-✅ **CLOSE ALL BROWSERS** - Browser history cleaning requires browsers to be closed
-
-### Disk Wiping Safety:
-
-- Wiping free space **will fill your disk** during operation
-- macOS needs at least **10-15GB free** to operate safely
-- The wipe function uses a **two-phase safety buffer** but system stability cannot be guaranteed
-- **Do NOT interrupt** the wiping process once started
-- **SSD users**: A single pass is sufficient for modern SSDs with TRIM
+> [!WARNING]
+> This program is provided free and without any implied safety, functionality, or intended use. It is a hobby project by an old-school IT guy who likes to create fun utilities to learn and experiment. **PLEASE BACKUP YOUR SYSTEM BEFORE USING THIS TOOL.**
 
 ---
 
