@@ -1,0 +1,26 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "goWipeMe",
+  "outputfilename": "gowipeme-gui",
+  "frontend:install": "bun install",
+  "frontend:build": "bun run build",
+  "frontend:dev": "bun run dev",
+  "frontend:dev:watcher": "bun run dev",
+  "frontend:dir": "frontend",
+  "wailsjsdir": "./frontend",
+  "assetdir": "./frontend/dist",
+  "reloaddirs": "frontend/src",
+  "build:dir": "build",
+  "debounceMS": 750,
+  "author": {
+    "name": "mat",
+    "email": "mat@example.com"
+  },
+  "info": {
+    "companyName": "mat",
+    "productName": "goWipeMe",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright.........\u0026copy;",
+    "comments": "Privacy tool for macOS"
+  }
+}
