@@ -1,0 +1,42 @@
+# Binaries
+gowipeme
+gowipeme-gui
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.app
+
+# Build artifacts
+build/
+dist/
+*.test
+*.out
+*.tar.gz
+*.zip
+release/
+artifacts/
+
+# Go workspace
+/vendor/
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Wails
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+wails.json
+
+# Environment
+.env
+.env.local

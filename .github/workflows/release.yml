@@ -1,0 +1,341 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.0
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Run tests
+        run: go test -v ./...
+
+  build-tui:
+    name: Build TUI
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: darwin
+            goarch: amd64
+            name: macos-intel
+          - goos: darwin
+            goarch: arm64
+            name: macos-apple-silicon
+          - goos: linux
+            goarch: amd64
+            name: linux-amd64
+          - goos: linux
+            goarch: arm64
+            name: linux-arm64
+          - goos: linux
+            goarch: riscv64
+            name: linux-riscv64
+          - goos: windows
+            goarch: amd64
+            name: windows-amd64
+            ext: .exe
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Build TUI
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          go build -ldflags="-s -w" -trimpath -o gowipeme${{ matrix.ext }} cmd/gowipeme/main.go
+
+      - name: Compress binary (Unix)
+        if: matrix.goos != 'windows'
+        run: |
+          tar -czf gowipeme-tui-${{ matrix.name }}.tar.gz gowipeme
+
+      - name: Compress binary (Windows)
+        if: matrix.goos == 'windows'
+        run: |
+          zip gowipeme-tui-${{ matrix.name }}.zip gowipeme.exe
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tui-${{ matrix.name }}
+          path: gowipeme-tui-${{ matrix.name }}.*
+
+  build-gui-macos:
+    name: Build GUI (macOS)
+    needs: test
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        include:
+          - platform: darwin/universal
+            name: macos-universal
+          - platform: darwin/amd64
+            name: macos-intel
+          - platform: darwin/arm64
+            name: macos-apple-silicon
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Bun
+        run: |
+          curl -fsSL https://bun.sh/install | bash
+          echo "$HOME/.bun/bin" >> $GITHUB_PATH
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Install frontend dependencies
+        run: cd frontend && bun install
+
+      - name: Build GUI
+        run: |
+          wails build -clean -platform ${{ matrix.platform }} -ldflags="-s -w" -trimpath -o gowipeme-gui
+
+      - name: Compress app bundle
+        run: |
+          cd build/bin
+          tar -czf ../../gowipeme-gui-${{ matrix.name }}.tar.gz goWipeMe.app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gui-${{ matrix.name }}
+          path: gowipeme-gui-${{ matrix.name }}.tar.gz
+
+  build-gui-linux:
+    name: Build GUI (Linux)
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            name: linux-amd64
+          - platform: linux/arm64
+            name: linux-arm64
+          - platform: linux/riscv64
+            name: linux-riscv64
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev
+
+      - name: Install Bun
+        run: |
+          curl -fsSL https://bun.sh/install | bash
+          echo "$HOME/.bun/bin" >> $GITHUB_PATH
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Install frontend dependencies
+        run: cd frontend && bun install
+
+      - name: Build GUI
+        run: |
+          wails build -clean -platform ${{ matrix.platform }} -ldflags="-s -w" -trimpath -o gowipeme-gui
+
+      - name: Compress binary
+        run: |
+          cd build/bin
+          tar -czf ../../gowipeme-gui-${{ matrix.name }}.tar.gz gowipeme-gui
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gui-${{ matrix.name }}
+          path: gowipeme-gui-${{ matrix.name }}.tar.gz
+
+  build-gui-windows:
+    name: Build GUI (Windows)
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Bun
+        run: |
+          powershell -c "irm bun.sh/install.ps1 | iex"
+          echo "$env:USERPROFILE\.bun\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Install frontend dependencies
+        run: cd frontend && bun install
+
+      - name: Build GUI
+        run: |
+          wails build -clean -platform windows/amd64 -ldflags="-s -w" -trimpath -o gowipeme-gui.exe
+
+      - name: Compress binary
+        run: |
+          cd build/bin
+          Compress-Archive -Path gowipeme-gui.exe -DestinationPath ../../gowipeme-gui-windows-amd64.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gui-windows-amd64
+          path: gowipeme-gui-windows-amd64.zip
+
+  create-release:
+    name: Create Release
+    needs: [build-tui, build-gui-macos, build-gui-linux, build-gui-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -R ./artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release
+          find ./artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" \) -exec cp {} ./release/ \;
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          cat > release_notes.md << 'EOF'
+          ## goWipeMe ${{ github.ref_name }}
+
+          Privacy tool for macOS, Linux, and Windows.
+
+          ### Features
+          - 🗑️ **Backup** - Save browser & shell history before cleaning
+          - 🔄 **Restore** - Restore from previous backups
+          - 🧹 **Clear All History** - Remove browser history, shell history, caches, recent files, clipboard
+          - 🔒 **Secure Wipe Free Space** - DoD-grade disk wiping (Single Pass, DoD 5220.22-M, Gutmann)
+
+          ### Downloads
+
+          #### TUI (Terminal Interface)
+          - **macOS Intel**: `gowipeme-tui-macos-intel.tar.gz`
+          - **macOS Apple Silicon**: `gowipeme-tui-macos-apple-silicon.tar.gz`
+          - **Linux AMD64**: `gowipeme-tui-linux-amd64.tar.gz`
+          - **Linux ARM64**: `gowipeme-tui-linux-arm64.tar.gz`
+          - **Linux RISC-V 64**: `gowipeme-tui-linux-riscv64.tar.gz`
+          - **Windows**: `gowipeme-tui-windows-amd64.zip`
+
+          #### GUI (Graphical Interface)
+          - **macOS Universal** (Intel + Apple Silicon): `gowipeme-gui-macos-universal.tar.gz`
+          - **macOS Intel**: `gowipeme-gui-macos-intel.tar.gz`
+          - **macOS Apple Silicon**: `gowipeme-gui-macos-apple-silicon.tar.gz`
+          - **Linux AMD64**: `gowipeme-gui-linux-amd64.tar.gz`
+          - **Linux ARM64**: `gowipeme-gui-linux-arm64.tar.gz`
+          - **Linux RISC-V 64**: `gowipeme-gui-linux-riscv64.tar.gz`
+          - **Windows**: `gowipeme-gui-windows-amd64.zip`
+
+          ### Installation
+
+          **TUI:**
+          ```bash
+          tar -xzf gowipeme-tui-*.tar.gz
+          ./gowipeme
+          ```
+
+          **GUI (macOS):**
+          ```bash
+          tar -xzf gowipeme-gui-macos-*.tar.gz
+          open goWipeMe.app
+          ```
+
+          **GUI (Linux):**
+          ```bash
+          tar -xzf gowipeme-gui-linux-*.tar.gz
+          ./gowipeme-gui
+          ```
+
+          **GUI (Windows):**
+          ```
+          Extract gowipeme-gui-windows-amd64.zip
+          Run gowipeme-gui.exe
+          ```
+
+          ### Safety Features
+          - Two-phase disk wiping prevents OS crashes
+          - Backups stored locally in `~/.gowipeme/backups/`
+          - All operations are reversible via restore
+
+          ---
+
+          **⚠️ Warning:** All cleaning operations are permanent. Create a backup first!
+          EOF
+          echo "notes_file=release_notes.md" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release/*
+          body_path: ${{ steps.release_notes.outputs.notes_file }}
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
