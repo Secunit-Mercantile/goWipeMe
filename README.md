@@ -1,12 +1,29 @@
-# goWipeMe
+<div align="center">
+  <img src="assets/gowipeme-logo.png" alt="goWipeMe Logo" width="350"/>
+  
+  <h1>goWipeMe</h1>
+  
+  <p><strong>Privacy tool for macOS, Linux, and Windows</strong></p>
+  
+  <p>Securely clean your digital footprint and wipe free disk space.</p>
+  
+  <p><em>Written in <a href="https://golang.org">Go</a> <img src="assets/go-logo.svg" alt="Go Logo" width="20" height="20" style="vertical-align: middle;"></em></p>
+</div>
 
-🧹 **Privacy tool for macOS, Linux, and Windows** - Securely clean your digital footprint and wipe free disk space.
+<div align="center">
+  <img src="assets/screenshot.png" alt="goWipeMe Application Screenshot" width="600"/>
+</div>
+
+<br />
+
+<div align="center">
 
 [![Release](https://img.shields.io/github/v/release/Secunit-Mercantile/goWipeMe)](https://github.com/Secunit-Mercantile/goWipeMe/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/go-1.21+-00ADD8.svg)](https://golang.org)
 
----
+</div>
+<br />
 
 > [!WARNING]
 > This program is provided free and without any implied safety, functionality, or intended use. It is a hobby project by an old-school IT guy who likes to create fun utilities to learn and experiment. **PLEASE BACKUP YOUR SYSTEM BEFORE USING THIS TOOL.**
