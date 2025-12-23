@@ -80,13 +80,29 @@ jobs:
         with:
           go-version: '1.21'
 
+      - name: Verify we're building TUI, not GUI
+        run: |
+          echo "Building TUI (Terminal Interface) for linux/amd64"
+          echo "Command: go build ./cmd/gowipeme"
+          echo "NOT using: wails build"
+          
       - name: Build TUI
         env:
           GOOS: linux
           GOARCH: amd64
           CGO_ENABLED: 0
         run: |
+          which go
+          go version
+          echo "Building TUI binary..."
           go build -ldflags="-s -w" -trimpath -o gowipeme ./cmd/gowipeme
+          if [ -f gowipeme ]; then
+            echo "✓ TUI build successful: $(ls -lh gowipeme)"
+            file gowipeme
+          else
+            echo "✗ TUI build failed - binary not found"
+            exit 1
+          fi
 
   build-tui-linux-arm64:
     name: Build TUI (Linux ARM64)
