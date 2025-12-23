@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"syscall"
 	"time"
 )
 
@@ -92,30 +91,10 @@ func NewWiper(volumePath string, method WipeMethod) (*Wiper, error) {
 }
 
 // GetFreeSpace returns the available free space on the volume in bytes
-func (w *Wiper) GetFreeSpace() (int64, error) {
-	var stat syscall.Statfs_t
-	err := syscall.Statfs(w.VolumePath, &stat)
-	if err != nil {
-		return 0, fmt.Errorf("failed to get volume stats: %w", err)
-	}
-
-	// Available blocks * block size
-	freeSpace := int64(stat.Bavail) * int64(stat.Bsize)
-	return freeSpace, nil
-}
+// Platform-specific implementation - see wiper_unix.go and wiper_windows.go
 
 // GetVolumeInfo returns information about the volume
-func (w *Wiper) GetVolumeInfo() (totalSpace, freeSpace int64, err error) {
-	var stat syscall.Statfs_t
-	err = syscall.Statfs(w.VolumePath, &stat)
-	if err != nil {
-		return 0, 0, fmt.Errorf("failed to get volume stats: %w", err)
-	}
-
-	totalSpace = int64(stat.Blocks) * int64(stat.Bsize)
-	freeSpace = int64(stat.Bavail) * int64(stat.Bsize)
-	return totalSpace, freeSpace, nil
-}
+// Platform-specific implementation - see wiper_unix.go and wiper_windows.go
 
 // WipeFreeSpace wipes all free space on the volume using a safe two-pass strategy.
 //
