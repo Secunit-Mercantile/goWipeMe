@@ -337,8 +337,16 @@ jobs:
           sudo dpkg --add-architecture arm64
           # Update apt, suppressing 404 errors for repos without ARM64 packages
           sudo apt-get update 2>&1 | grep -v "404  Not Found" || true
-          # Install ARM64 cross-compilation toolchain (including pkg-config)
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu pkg-config-aarch64-linux-gnu
+          # Install ARM64 cross-compilation toolchain and pkg-config
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu pkg-config
+          # Create aarch64-linux-gnu-pkg-config wrapper script
+          sudo tee /usr/local/bin/aarch64-linux-gnu-pkg-config > /dev/null << 'EOF'
+#!/bin/bash
+export PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
+export PKG_CONFIG_LIBDIR=/usr/lib/aarch64-linux-gnu/pkgconfig
+exec pkg-config "$@"
+EOF
+          sudo chmod +x /usr/local/bin/aarch64-linux-gnu-pkg-config
           # Try to install ARM64 libraries (some repos may not have them, that's OK)
           sudo apt-get install -y libgtk-3-dev:arm64 libwebkit2gtk-4.1-dev:arm64 || \
             echo "⚠ Some ARM64 packages may not be available in all repos - continuing anyway"
