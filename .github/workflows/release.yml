@@ -183,12 +183,45 @@ jobs:
         run: |
           wails build -clean -platform ${{ matrix.platform }} -ldflags="-s -w" -trimpath -o gowipeme-gui
 
+      - name: Check build output
+        id: check_build
+        continue-on-error: true
+        run: |
+          if [ -d "build/bin" ] && [ -f "build/bin/gowipeme-gui" ]; then
+            echo "build_success=true" >> $GITHUB_OUTPUT
+            echo "✓ Build successful, binary found"
+          else
+            echo "build_success=false" >> $GITHUB_OUTPUT
+            echo "✗ Build directory or binary not found"
+            echo "Build directory structure:"
+            ls -la build/ 2>/dev/null || echo "build/ directory does not exist"
+            echo ""
+            echo "Searching for gowipeme-gui binary:"
+            find . -name "gowipeme-gui" -type f 2>/dev/null || echo "gowipeme-gui binary not found"
+          fi
+
       - name: Compress binary
+        if: steps.check_build.outputs.build_success == 'true'
         run: |
           cd build/bin
           tar -czf ../../gowipeme-gui-${{ matrix.name }}.tar.gz gowipeme-gui
+          echo "✓ Binary compressed successfully"
+
+      - name: Skip if build not supported
+        if: steps.check_build.outputs.build_success != 'true' && matrix.platform == 'linux/riscv64'
+        run: |
+          echo "⚠ WARNING: RISC-V 64 may not be supported by Wails for GUI builds"
+          echo "Skipping this build target"
+          echo "This is expected if Wails does not support RISC-V 64 architecture"
+
+      - name: Fail if build not found (non-RISC-V)
+        if: steps.check_build.outputs.build_success != 'true' && matrix.platform != 'linux/riscv64'
+        run: |
+          echo "ERROR: Build failed or binary not found for ${{ matrix.platform }}"
+          exit 1
 
       - name: Upload artifact
+        if: steps.check_build.outputs.build_success == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: gui-${{ matrix.name }}

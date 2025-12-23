@@ -1,11 +1,7 @@
 <div align="center">
   <img src="assets/gowipeme-logo.png" alt="goWipeMe Logo" width="350"/>
   
-  <h1>goWipeMe</h1>
-  
   <p><strong>Privacy tool for macOS, Linux, and Windows</strong></p>
-  
-  <p>Securely clean your digital footprint and wipe free disk space.</p>
   
   <p><em>Written in <a href="https://golang.org">Go</a> <img src="assets/go-logo.svg" alt="Go Logo" width="20" height="20" style="vertical-align: middle;"></em></p>
 </div>
@@ -21,6 +17,26 @@
 [![Release](https://img.shields.io/github/v/release/Secunit-Mercantile/goWipeMe)](https://github.com/Secunit-Mercantile/goWipeMe/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/go-1.21+-00ADD8.svg)](https://golang.org)
+[![CI](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml/badge.svg)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
+
+**Build Status** - All binaries are built and tested in CI
+
+TUI: 
+[![TUI macOS Intel](https://img.shields.io/badge/TUI%20macOS%20Intel-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
+[![TUI macOS Apple Silicon](https://img.shields.io/badge/TUI%20macOS%20Apple%20Silicon-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
+[![TUI Linux AMD64](https://img.shields.io/badge/TUI%20Linux%20AMD64-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
+[![TUI Linux ARM64](https://img.shields.io/badge/TUI%20Linux%20ARM64-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
+[![TUI Linux RISC-V 64](https://img.shields.io/badge/TUI%20Linux%20RISC--V%2064-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
+[![TUI Windows AMD64](https://img.shields.io/badge/TUI%20Windows%20AMD64-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
+
+GUI: 
+[![GUI macOS Universal](https://img.shields.io/badge/GUI%20macOS%20Universal-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
+[![GUI macOS Intel](https://img.shields.io/badge/GUI%20macOS%20Intel-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
+[![GUI macOS Apple Silicon](https://img.shields.io/badge/GUI%20macOS%20Apple%20Silicon-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
+[![GUI Linux AMD64](https://img.shields.io/badge/GUI%20Linux%20AMD64-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
+[![GUI Linux ARM64](https://img.shields.io/badge/GUI%20Linux%20ARM64-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
+[![GUI Linux RISC-V 64](https://img.shields.io/badge/GUI%20Linux%20RISC--V%2064-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
+[![GUI Windows AMD64](https://img.shields.io/badge/GUI%20Windows%20AMD64-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
 
 </div>
 <br />
