@@ -167,18 +167,17 @@ jobs:
         run: |
           # For ARM64, we need cross-compilation toolchain and ARM64 libraries
           if [ "${{ matrix.platform }}" = "linux/arm64" ]; then
-            # Enable multiarch for ARM64 FIRST, then update
+            # Enable multiarch for ARM64 FIRST
             sudo dpkg --add-architecture arm64
-            sudo apt-get update
+            # Update apt, ignoring 404 errors for repositories that don't have ARM64
+            sudo apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false 2>&1 | grep -v "404  Not Found" || true
             # Install ARM64 cross-compilation toolchain
             sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-            # Check available ARM64 packages
-            echo "Checking available ARM64 packages..."
-            apt-cache search libgtk-3-dev:arm64 || apt-cache search libgtk-3 | grep arm64 || true
-            apt-cache search webkit2gtk | grep arm64 || true
-            # Try to install ARM64 libraries - use available versions
-            sudo apt-get install -y libgtk-3-dev:arm64 || echo "libgtk-3-dev:arm64 not available, trying alternative..."
-            sudo apt-get install -y libwebkit2gtk-4.1-dev:arm64 || sudo apt-get install -y libwebkit2gtk-4.0-dev:arm64 || echo "webkit2gtk dev package not available for arm64"
+            # Try to install ARM64 libraries from main repository (most reliable)
+            sudo apt-get install -y libgtk-3-dev:arm64 libwebkit2gtk-4.1-dev:arm64 || \
+              (echo "⚠ ARM64 packages not available in all repos, trying main repo only..." && \
+               sudo apt-get install -y -o APT::Architectures=arm64 libgtk-3-dev:arm64 libwebkit2gtk-4.1-dev:arm64 || \
+               echo "⚠ Could not install ARM64 packages - build may fail")
             # Create symlink for ARM64 if needed
             if [ -f /usr/lib/aarch64-linux-gnu/pkgconfig/webkit2gtk-4.1.pc ] && [ ! -f /usr/lib/aarch64-linux-gnu/pkgconfig/webkit2gtk-4.0.pc ]; then
               sudo ln -s /usr/lib/aarch64-linux-gnu/pkgconfig/webkit2gtk-4.1.pc /usr/lib/aarch64-linux-gnu/pkgconfig/webkit2gtk-4.0.pc
