@@ -331,19 +331,25 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install dependencies
+      - name: Install cross-compilation toolchain and dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
-          # Wails looks for webkit2gtk-4.0, but Ubuntu has 4.1 - create symlink
-          if [ -f /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.1.pc ] && [ ! -f /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.0.pc ]; then
-            sudo ln -s /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.1.pc /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.0.pc
-          fi
-          # Also check for arm64 path
+          # Install ARM64 cross-compilation toolchain
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          # Install ARM64 libraries for cross-compilation
+          sudo apt-get install -y libgtk-3-dev:arm64 libwebkit2gtk-4.1-dev:arm64
+          # Enable multiarch for ARM64
+          sudo dpkg --add-architecture arm64
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev:arm64 libwebkit2gtk-4.1-dev:arm64
+          # Wails looks for webkit2gtk-4.0, create symlink for ARM64
           if [ -f /usr/lib/aarch64-linux-gnu/pkgconfig/webkit2gtk-4.1.pc ] && [ ! -f /usr/lib/aarch64-linux-gnu/pkgconfig/webkit2gtk-4.0.pc ]; then
             sudo ln -s /usr/lib/aarch64-linux-gnu/pkgconfig/webkit2gtk-4.1.pc /usr/lib/aarch64-linux-gnu/pkgconfig/webkit2gtk-4.0.pc
           fi
-          pkg-config --exists webkit2gtk-4.0 && echo "✓ webkit2gtk-4.0 found" || echo "⚠ webkit2gtk-4.0 not found, checking available versions:" && pkg-config --list-all | grep webkit || true
+          # Set up pkg-config for cross-compilation
+          export PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
+          export PKG_CONFIG=/usr/bin/pkg-config
+          pkg-config --exists --define-variable=prefix=/usr/aarch64-linux-gnu webkit2gtk-4.0 && echo "✓ webkit2gtk-4.0 found for ARM64" || echo "⚠ webkit2gtk-4.0 not found for ARM64"
 
       - name: Install Bun
         run: |
@@ -357,6 +363,14 @@ jobs:
         run: cd frontend && bun install
 
       - name: Build GUI
+        env:
+          CC: aarch64-linux-gnu-gcc
+          CXX: aarch64-linux-gnu-g++
+          PKG_CONFIG: aarch64-linux-gnu-pkg-config
+          PKG_CONFIG_PATH: /usr/lib/aarch64-linux-gnu/pkgconfig
+          CGO_ENABLED: 1
+          GOOS: linux
+          GOARCH: arm64
         run: |
           wails build -clean -platform linux/arm64 -ldflags="-s -w" -trimpath -o gowipeme-gui
 
