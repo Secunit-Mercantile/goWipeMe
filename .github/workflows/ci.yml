@@ -340,12 +340,12 @@ jobs:
           # Install ARM64 cross-compilation toolchain and pkg-config
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu pkg-config
           # Create aarch64-linux-gnu-pkg-config wrapper script
-          sudo tee /usr/local/bin/aarch64-linux-gnu-pkg-config > /dev/null << 'EOF'
-#!/bin/bash
-export PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
-export PKG_CONFIG_LIBDIR=/usr/lib/aarch64-linux-gnu/pkgconfig
-exec pkg-config "$@"
-EOF
+          printf '%s\n' \
+            '#!/bin/bash' \
+            'export PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH' \
+            'export PKG_CONFIG_LIBDIR=/usr/lib/aarch64-linux-gnu/pkgconfig' \
+            'exec pkg-config "$@"' \
+            | sudo tee /usr/local/bin/aarch64-linux-gnu-pkg-config > /dev/null
           sudo chmod +x /usr/local/bin/aarch64-linux-gnu-pkg-config
           # Try to install ARM64 libraries (some repos may not have them, that's OK)
           sudo apt-get install -y libgtk-3-dev:arm64 libwebkit2gtk-4.1-dev:arm64 || \
