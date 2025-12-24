@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/mat/gowipeme/internal/backup"
 	"github.com/mat/gowipeme/internal/cleaner"
 	"github.com/mat/gowipeme/internal/wiper"
 )
@@ -53,11 +55,26 @@ type view int
 
 const (
 	menuView view = iota
+	backupConfirmView
+	backupRunningView
+	restoreSelectView
+	restoreConfirmView
+	restoreRunningView
 	cleanerView
 	wiperMethodView
 	wiperConfirmView
 	wiperProgressView
 	resultsView
+)
+
+type resultsMode int
+
+const (
+	resultsNone resultsMode = iota
+	resultsCleaner
+	resultsWiper
+	resultsBackup
+	resultsRestore
 )
 
 type model struct {
@@ -66,6 +83,14 @@ type model struct {
 	cleanerMgr      *cleaner.CleanerManager
 	dryRunResults   map[string][]string
 	cleanResults    []cleaner.CleanResult
+	backupMgr       *backup.BackupManager
+	backupPreview   []string
+	backupInfo      *backup.BackupInfo
+	backupError     error
+	restoreBackups  []backup.BackupInfo
+	restoreSelected *backup.BackupInfo
+	restoreError    error
+	restoreResultID string
 	wiper           *wiper.Wiper
 	wiperMethod     wiper.WipeMethod
 	wiperProgress   wiper.Progress
@@ -75,12 +100,16 @@ type model struct {
 	freeSpace       int64
 	totalSpace      int64
 	methodSelection int
+	restoreSelection int
+	resultsMode      resultsMode
 	err             error
 	quitting        bool
 }
 
 func initialModel() model {
 	items := []list.Item{
+		item("Backup"),
+		item("Restore"),
 		item("Clear All History"),
 		item("Secure Wipe Free Space"),
 		item("Quit"),
@@ -105,6 +134,8 @@ func initialModel() model {
 	cm.AddCleaner(cleaner.NewRecentFilesCleaner())
 	cm.AddCleaner(cleaner.NewClipboardCleaner())
 
+	bm, _ := backup.NewBackupManager()
+
 	// Initialize progress bar
 	pb := progress.New(progress.WithDefaultGradient())
 
@@ -112,14 +143,25 @@ func initialModel() model {
 		list:            l,
 		currentView:     menuView,
 		cleanerMgr:      cm,
+		backupMgr:       bm,
 		progressBar:     pb,
 		methodSelection: 0, // Default to SinglePassZeros
+		restoreSelection: 0,
+		resultsMode:      resultsNone,
 	}
 }
 
 type wiperProgressMsg wiper.Progress
 type wiperCompleteMsg struct{}
 type wiperErrorMsg error
+
+type backupPreviewMsg []string
+type backupCompleteMsg struct{ info *backup.BackupInfo }
+type backupErrorMsg error
+
+type restoreBackupsMsg []backup.BackupInfo
+type restoreCompleteMsg struct{ backupID string }
+type restoreErrorMsg error
 
 func (m model) Init() tea.Cmd {
 	return nil
@@ -155,6 +197,58 @@ func startWiping(w *wiper.Wiper) tea.Cmd {
 	}
 }
 
+func loadBackupPreview(bm *backup.BackupManager) tea.Cmd {
+	return func() tea.Msg {
+		if bm == nil {
+			return backupErrorMsg(fmt.Errorf("backup manager not available"))
+		}
+		items, err := bm.PreviewBackup()
+		if err != nil {
+			return backupErrorMsg(err)
+		}
+		sort.Strings(items)
+		return backupPreviewMsg(items)
+	}
+}
+
+func startBackup(bm *backup.BackupManager) tea.Cmd {
+	return func() tea.Msg {
+		if bm == nil {
+			return backupErrorMsg(fmt.Errorf("backup manager not available"))
+		}
+		info, err := bm.CreateBackup()
+		if err != nil {
+			return backupErrorMsg(err)
+		}
+		return backupCompleteMsg{info: info}
+	}
+}
+
+func loadBackups(bm *backup.BackupManager) tea.Cmd {
+	return func() tea.Msg {
+		if bm == nil {
+			return restoreErrorMsg(fmt.Errorf("backup manager not available"))
+		}
+		backups, err := bm.ListBackups()
+		if err != nil {
+			return restoreErrorMsg(err)
+		}
+		return restoreBackupsMsg(backups)
+	}
+}
+
+func startRestore(bm *backup.BackupManager, backupID string) tea.Cmd {
+	return func() tea.Msg {
+		if bm == nil {
+			return restoreErrorMsg(fmt.Errorf("backup manager not available"))
+		}
+		if err := bm.RestoreBackup(backupID); err != nil {
+			return restoreErrorMsg(err)
+		}
+		return restoreCompleteMsg{backupID: backupID}
+	}
+}
+
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case wiperProgressMsg:
@@ -163,11 +257,50 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case wiperCompleteMsg:
 		m.wiperComplete = true
+		m.resultsMode = resultsWiper
 		m.currentView = resultsView
 		return m, nil
 
 	case wiperErrorMsg:
 		m.wiperError = error(msg)
+		m.resultsMode = resultsWiper
+		m.currentView = resultsView
+		return m, nil
+
+	case backupPreviewMsg:
+		m.backupPreview = []string(msg)
+		return m, nil
+
+	case backupCompleteMsg:
+		m.backupInfo = msg.info
+		m.backupError = nil
+		m.resultsMode = resultsBackup
+		m.currentView = resultsView
+		return m, nil
+
+	case backupErrorMsg:
+		m.backupInfo = nil
+		m.backupError = error(msg)
+		m.resultsMode = resultsBackup
+		m.currentView = resultsView
+		return m, nil
+
+	case restoreBackupsMsg:
+		m.restoreBackups = []backup.BackupInfo(msg)
+		m.restoreSelection = 0
+		m.restoreSelected = nil
+		return m, nil
+
+	case restoreCompleteMsg:
+		m.restoreError = nil
+		m.restoreResultID = msg.backupID
+		m.resultsMode = resultsRestore
+		m.currentView = resultsView
+		return m, nil
+
+	case restoreErrorMsg:
+		m.restoreError = error(msg)
+		m.resultsMode = resultsRestore
 		m.currentView = resultsView
 		return m, nil
 
@@ -182,26 +315,40 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.quitting = true
 				return m, tea.Quit
 			}
-			if m.currentView == wiperProgressView {
-				// Don't allow quitting during wipe
+			if m.currentView == wiperProgressView || m.currentView == backupRunningView || m.currentView == restoreRunningView {
+				// Don't allow quitting during in-progress operations
 				return m, nil
 			}
 			// Go back to menu from other views
 			m.currentView = menuView
 			m.dryRunResults = nil
 			m.cleanResults = nil
+			m.backupPreview = nil
+			m.backupInfo = nil
+			m.backupError = nil
+			m.restoreBackups = nil
+			m.restoreSelected = nil
+			m.restoreError = nil
+			m.restoreResultID = ""
 			m.wiperComplete = false
 			m.wiperError = nil
+			m.resultsMode = resultsNone
 			return m, nil
 
 		case "up", "k":
 			if m.currentView == wiperMethodView && m.methodSelection > 0 {
 				m.methodSelection--
 			}
+			if m.currentView == restoreSelectView && m.restoreSelection > 0 {
+				m.restoreSelection--
+			}
 
 		case "down", "j":
 			if m.currentView == wiperMethodView && m.methodSelection < 2 {
 				m.methodSelection++
+			}
+			if m.currentView == restoreSelectView && m.restoreSelection < len(m.restoreBackups)-1 {
+				m.restoreSelection++
 			}
 
 		case "enter":
@@ -209,6 +356,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				i, ok := m.list.SelectedItem().(item)
 				if ok {
 					switch string(i) {
+					case "Backup":
+						m.currentView = backupConfirmView
+						m.backupPreview = nil
+						m.backupInfo = nil
+						m.backupError = nil
+						return m, loadBackupPreview(m.backupMgr)
+
+					case "Restore":
+						m.currentView = restoreSelectView
+						m.restoreBackups = nil
+						m.restoreSelected = nil
+						m.restoreError = nil
+						m.restoreResultID = ""
+						return m, loadBackups(m.backupMgr)
+
 					case "Clear All History":
 						m.currentView = cleanerView
 						// Run dry-run
@@ -229,9 +391,29 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						return m, tea.Quit
 					}
 				}
+			} else if m.currentView == backupConfirmView {
+				m.currentView = backupRunningView
+				return m, startBackup(m.backupMgr)
+			} else if m.currentView == restoreSelectView {
+				if len(m.restoreBackups) == 0 {
+					return m, nil
+				}
+				selected := m.restoreBackups[m.restoreSelection]
+				m.restoreSelected = &selected
+				m.currentView = restoreConfirmView
+				return m, nil
+			} else if m.currentView == restoreConfirmView {
+				if m.restoreSelected == nil {
+					m.currentView = restoreSelectView
+					return m, nil
+				}
+				m.restoreResultID = m.restoreSelected.ID
+				m.currentView = restoreRunningView
+				return m, startRestore(m.backupMgr, m.restoreSelected.ID)
 			} else if m.currentView == cleanerView {
 				// User confirmed, run cleaning
 				m.cleanResults = m.cleanerMgr.CleanAll()
+				m.resultsMode = resultsCleaner
 				m.currentView = resultsView
 				return m, nil
 			} else if m.currentView == wiperMethodView {
@@ -269,8 +451,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.currentView = menuView
 				m.dryRunResults = nil
 				m.cleanResults = nil
+				m.backupPreview = nil
+				m.backupInfo = nil
+				m.backupError = nil
+				m.restoreBackups = nil
+				m.restoreSelected = nil
+				m.restoreError = nil
+				m.restoreResultID = ""
 				m.wiperComplete = false
 				m.wiperError = nil
+				m.resultsMode = resultsNone
 				return m, nil
 			}
 		}
@@ -292,6 +482,21 @@ func (m model) View() string {
 	case menuView:
 		return "\n" + m.list.View()
 
+	case backupConfirmView:
+		return m.renderBackupConfirmView()
+
+	case backupRunningView:
+		return m.renderBackupRunningView()
+
+	case restoreSelectView:
+		return m.renderRestoreSelectView()
+
+	case restoreConfirmView:
+		return m.renderRestoreConfirmView()
+
+	case restoreRunningView:
+		return m.renderRestoreRunningView()
+
 	case cleanerView:
 		return m.renderCleanerView()
 
@@ -312,6 +517,126 @@ func (m model) View() string {
 	}
 }
 
+func (m model) renderBackupConfirmView() string {
+	var s strings.Builder
+	s.WriteString("\n  💾 Backup - Preview\n\n")
+
+	if m.backupMgr == nil {
+		s.WriteString("  ✗ Backup manager not available\n\n")
+		s.WriteString("  Press 'q' to go back\n")
+		return s.String()
+	}
+
+	if m.backupError != nil {
+		s.WriteString(fmt.Sprintf("  ✗ Error: %v\n\n", m.backupError))
+		s.WriteString("  Press 'q' to go back\n")
+		return s.String()
+	}
+
+	if m.backupPreview == nil {
+		s.WriteString("  Loading...\n\n")
+		s.WriteString("  Press 'q' to cancel\n")
+		return s.String()
+	}
+
+	if len(m.backupPreview) == 0 {
+		s.WriteString("  ✓ Nothing found to backup.\n\n")
+		s.WriteString("  Press 'q' to go back\n")
+		return s.String()
+	}
+
+	s.WriteString("  Items that will be backed up:\n\n")
+	for _, name := range m.backupPreview {
+		s.WriteString(fmt.Sprintf("    • %s\n", name))
+	}
+
+	s.WriteString("\n  Backups are stored in ~/.gowipeme/backups/\n")
+	s.WriteString("  Press ENTER to create backup\n")
+	s.WriteString("  Press 'q' to cancel\n")
+	return s.String()
+}
+
+func (m model) renderBackupRunningView() string {
+	return "\n  💾 Creating backup...\n\n  Please wait.\n"
+}
+
+func (m model) renderRestoreSelectView() string {
+	var s strings.Builder
+	s.WriteString("\n  🔄 Restore - Select Backup\n\n")
+
+	if m.backupMgr == nil {
+		s.WriteString("  ✗ Backup manager not available\n\n")
+		s.WriteString("  Press 'q' to go back\n")
+		return s.String()
+	}
+
+	if m.restoreError != nil {
+		s.WriteString(fmt.Sprintf("  ✗ Error: %v\n\n", m.restoreError))
+		s.WriteString("  Press 'q' to go back\n")
+		return s.String()
+	}
+
+	if m.restoreBackups == nil {
+		s.WriteString("  Loading backups...\n\n")
+		s.WriteString("  Press 'q' to cancel\n")
+		return s.String()
+	}
+
+	if len(m.restoreBackups) == 0 {
+		s.WriteString("  No backups found.\n\n")
+		s.WriteString("  Press 'q' to go back\n")
+		return s.String()
+	}
+
+	for i, b := range m.restoreBackups {
+		cursor := "  "
+		if i == m.restoreSelection {
+			cursor = "> "
+		}
+		line := fmt.Sprintf("%s%s  (%s, %d items)", cursor, b.Timestamp.Local().Format("2006-01-02 15:04"), wiper.FormatBytes(b.Size), len(b.Items))
+		s.WriteString("  " + line + "\n")
+	}
+
+	s.WriteString("\n  Use arrow keys or j/k to select\n")
+	s.WriteString("  Press ENTER to continue\n")
+	s.WriteString("  Press 'q' to go back\n")
+	return s.String()
+}
+
+func (m model) renderRestoreConfirmView() string {
+	var s strings.Builder
+	s.WriteString("\n  🔄 Restore - Confirmation\n\n")
+
+	if m.restoreSelected == nil {
+		s.WriteString("  No backup selected.\n\n")
+		s.WriteString("  Press 'q' to go back\n")
+		return s.String()
+	}
+
+	b := m.restoreSelected
+	s.WriteString(fmt.Sprintf("  Backup: %s\n", b.ID))
+	s.WriteString(fmt.Sprintf("  Date: %s\n", b.Timestamp.Local().Format(time.RFC1123)))
+	s.WriteString(fmt.Sprintf("  Size: %s\n", wiper.FormatBytes(b.Size)))
+	s.WriteString(fmt.Sprintf("  Items: %d\n\n", len(b.Items)))
+
+	if len(b.Items) > 0 {
+		s.WriteString("  Includes:\n")
+		for _, it := range b.Items {
+			s.WriteString(fmt.Sprintf("    • %s\n", it))
+		}
+		s.WriteString("\n")
+	}
+
+	s.WriteString("  ⚠️  WARNING: This will overwrite existing files.\n\n")
+	s.WriteString("  Press ENTER to restore\n")
+	s.WriteString("  Press 'q' to cancel\n")
+	return s.String()
+}
+
+func (m model) renderRestoreRunningView() string {
+	return "\n  🔄 Restoring backup...\n\n  Please wait.\n"
+}
+
 func (m model) renderCleanerView() string {
 	var s strings.Builder
 
@@ -330,7 +655,14 @@ func (m model) renderCleanerView() string {
 	}
 
 	totalItems := 0
-	for cleanerName, items := range m.dryRunResults {
+	names := make([]string, 0, len(m.dryRunResults))
+	for cleanerName := range m.dryRunResults {
+		names = append(names, cleanerName)
+	}
+	sort.Strings(names)
+
+	for _, cleanerName := range names {
+		items := m.dryRunResults[cleanerName]
 		totalItems += len(items)
 		s.WriteString(fmt.Sprintf("  %s (%d items):\n", cleanerName, len(items)))
 		for _, item := range items {
@@ -350,8 +682,8 @@ func (m model) renderCleanerView() string {
 func (m model) renderResultsView() string {
 	var s strings.Builder
 
-	// Check if this is wiper results or cleaner results
-	if m.wiperComplete || m.wiperError != nil {
+	switch m.resultsMode {
+	case resultsWiper:
 		s.WriteString("\n  ✨ Disk Wiping Complete\n\n")
 
 		if m.wiperError != nil {
@@ -361,7 +693,30 @@ func (m model) renderResultsView() string {
 			s.WriteString(fmt.Sprintf("  ✓ Wiped: %s\n", wiper.FormatBytes(m.wiperProgress.BytesWritten)))
 			s.WriteString(fmt.Sprintf("  ✓ Time taken: %s\n", m.wiperProgress.TimeElapsed.Round(time.Second)))
 		}
-	} else {
+	case resultsBackup:
+		s.WriteString("\n  💾 Backup Complete\n\n")
+		if m.backupError != nil {
+			s.WriteString(fmt.Sprintf("  ✗ Error: %v\n", m.backupError))
+		} else if m.backupInfo != nil {
+			s.WriteString(fmt.Sprintf("  ✓ Backup created: %s\n", m.backupInfo.ID))
+			s.WriteString(fmt.Sprintf("  ✓ Items: %d\n", len(m.backupInfo.Items)))
+			s.WriteString(fmt.Sprintf("  ✓ Size: %s\n", wiper.FormatBytes(m.backupInfo.Size)))
+			s.WriteString("  ✓ Stored in: ~/.gowipeme/backups/\n")
+		} else {
+			s.WriteString("  ✗ Unknown backup state\n")
+		}
+	case resultsRestore:
+		s.WriteString("\n  🔄 Restore Complete\n\n")
+		if m.restoreError != nil {
+			s.WriteString(fmt.Sprintf("  ✗ Error: %v\n", m.restoreError))
+		} else {
+			if m.restoreResultID != "" {
+				s.WriteString(fmt.Sprintf("  ✓ Restored backup: %s\n", m.restoreResultID))
+			} else {
+				s.WriteString("  ✓ Restore completed\n")
+			}
+		}
+	default:
 		s.WriteString("\n  ✨ Cleaning Complete\n\n")
 
 		for _, result := range m.cleanResults {

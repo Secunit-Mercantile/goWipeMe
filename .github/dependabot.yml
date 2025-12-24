@@ -17,10 +17,10 @@ updates:
       - "ci"
 
   # ----------------------------
-  # Go service (apps/api)
+  # Go module (root)
   # ----------------------------
   - package-ecosystem: "gomod"
-    directory: "/apps/api"
+    directory: "/"
     schedule:
       interval: "weekly"
       day: "sunday"
@@ -36,48 +36,23 @@ updates:
           - "*"
 
   # ----------------------------
-  # Astro+Bun app (apps/web)
+  # Frontend (Svelte+Vite app)
   # npm ecosystem is correct even if you use Bun + bun.lockb
   # ----------------------------
   - package-ecosystem: "npm"
-    directory: "/apps/web"
+    directory: "/frontend"
     schedule:
       interval: "weekly"
       day: "sunday"
     open-pull-requests-limit: 8
     commit-message:
-      prefix: "deps(web)"
+      prefix: "deps(frontend)"
     labels:
       - "dependencies"
-      - "web"
-      - "astro"
+      - "frontend"
+      - "svelte"
       - "bun"
     groups:
-      astro-core:
-        patterns:
-          - "astro"
-          - "@astrojs/*"
-      web-deps:
-        patterns:
-          - "*"
-
-  # ----------------------------
-  # Shared JS packages (optional)
-  # Remove this block if you don't have /packages
-  # ----------------------------
-  - package-ecosystem: "npm"
-    directory: "/packages"
-    schedule:
-      interval: "weekly"
-      day: "sunday"
-    open-pull-requests-limit: 8
-    commit-message:
-      prefix: "deps(pkgs)"
-    labels:
-      - "dependencies"
-      - "web"
-      - "bun"
-    groups:
-      packages-deps:
+      frontend-deps:
         patterns:
           - "*"
