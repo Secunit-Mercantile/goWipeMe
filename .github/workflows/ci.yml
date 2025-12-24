@@ -13,15 +13,53 @@ env:
   WAILS_VERSION: v2.11.0
 
 jobs:
+  # Check which files changed to determine if builds are needed
+  changes:
+    name: Check Changes
+    runs-on: ubuntu-latest
+    outputs:
+      source: ${{ steps.set_output.outputs.source }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2  # Need previous commit for comparison
+
+      - name: Check for source file changes
+        id: filter
+        continue-on-error: true
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            source:
+              - '**/*.go'
+              - 'go.mod'
+              - 'go.sum'
+              - 'wails.json'
+              - 'Makefile'
+              - 'frontend/**'
+
+      - name: Set output (default to true if filter failed)
+        id: set_output
+        run: |
+          # If filter step failed (e.g., first commit), default to true (run builds)
+          if [ "${{ steps.filter.outcome }}" != "success" ]; then
+            echo "source=true" >> $GITHUB_OUTPUT
+          elif [ "${{ steps.filter.outputs.source }}" == "true" ]; then
+            echo "source=true" >> $GITHUB_OUTPUT
+          else
+            echo "source=false" >> $GITHUB_OUTPUT
+          fi
+
   test:
     name: Run Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
@@ -30,14 +68,15 @@ jobs:
 
   build-tui-macos-intel:
     name: Build TUI (macOS Intel)
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.source == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
@@ -51,14 +90,15 @@ jobs:
 
   build-tui-macos-apple-silicon:
     name: Build TUI (macOS Apple Silicon)
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.source == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
@@ -72,14 +112,15 @@ jobs:
 
   build-tui-linux-amd64:
     name: Build TUI (Linux AMD64)
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.source == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
@@ -109,14 +150,15 @@ jobs:
 
   build-tui-linux-arm64:
     name: Build TUI (Linux ARM64)
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.source == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
@@ -130,14 +172,15 @@ jobs:
 
   build-tui-linux-riscv64:
     name: Build TUI (Linux RISC-V 64)
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.source == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
@@ -151,14 +194,15 @@ jobs:
 
   build-tui-windows-amd64:
     name: Build TUI (Windows AMD64)
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.source == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
@@ -172,19 +216,20 @@ jobs:
 
   build-gui-macos-universal:
     name: Build GUI (macOS Universal)
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.source == 'true'
     runs-on: macos-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
@@ -205,19 +250,20 @@ jobs:
 
   build-gui-macos-intel:
     name: Build GUI (macOS Intel)
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.source == 'true'
     runs-on: macos-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
@@ -238,19 +284,20 @@ jobs:
 
   build-gui-macos-apple-silicon:
     name: Build GUI (macOS Apple Silicon)
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.source == 'true'
     runs-on: macos-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
@@ -271,19 +318,20 @@ jobs:
 
   build-gui-linux-amd64:
     name: Build GUI (Linux AMD64)
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.source == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
@@ -318,19 +366,20 @@ jobs:
 
   build-gui-linux-arm64:
     name: Build GUI (Linux ARM64)
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.source == 'true'
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
@@ -361,19 +410,20 @@ jobs:
 
   build-gui-linux-riscv64:
     name: Build GUI (Linux RISC-V 64)
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.source == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
@@ -409,19 +459,20 @@ jobs:
 
   build-gui-windows-amd64:
     name: Build GUI (Windows AMD64)
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.source == 'true'
     runs-on: windows-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 

@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
@@ -55,10 +55,10 @@ jobs:
             ext: .exe
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
@@ -81,7 +81,7 @@ jobs:
           zip gowipeme-tui-${{ matrix.name }}.zip gowipeme.exe
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: tui-${{ matrix.name }}
           path: gowipeme-tui-${{ matrix.name }}.*
@@ -101,15 +101,15 @@ jobs:
             name: macos-apple-silicon
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
@@ -134,7 +134,7 @@ jobs:
           tar -czf ../../gowipeme-gui-${{ matrix.name }}.tar.gz goWipeMe.app
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: gui-${{ matrix.name }}
           path: gowipeme-gui-${{ matrix.name }}.tar.gz
@@ -157,15 +157,15 @@ jobs:
             runner: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
@@ -236,7 +236,7 @@ jobs:
 
       - name: Upload artifact
         if: steps.check_build.outputs.build_success == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: gui-${{ matrix.name }}
           path: gowipeme-gui-${{ matrix.name }}.tar.gz
@@ -247,15 +247,15 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
@@ -280,7 +280,7 @@ jobs:
           Compress-Archive -Path gowipeme-gui.exe -DestinationPath ../../gowipeme-gui-windows-amd64.zip
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: gui-windows-amd64
           path: gowipeme-gui-windows-amd64.zip
@@ -289,9 +289,11 @@ jobs:
     name: Create Release
     needs: [build-tui, build-gui-macos, build-gui-linux, build-gui-windows]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -390,15 +392,34 @@ jobs:
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "Creating release for tag: $TAG_NAME"
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ steps.tag.outputs.tag_name }}
-          name: Release ${{ steps.tag.outputs.tag_name }}
-          files: release/*
-          body_path: ${{ steps.release_notes.outputs.notes_file }}
-          draft: false
-          prerelease: false
-          generate_release_notes: false
+      - name: Create or update GitHub Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ steps.tag.outputs.tag_name }}
+          NOTES_FILE: ${{ steps.release_notes.outputs.notes_file }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          title="Release ${TAG_NAME}"
+          files=(release/*)
+
+          echo "Release tag: ${TAG_NAME}"
+          echo "Notes file: ${NOTES_FILE}"
+          echo "Assets: ${#files[@]}"
+          ls -la release || true
+
+          if gh release view "${TAG_NAME}" >/dev/null 2>&1; then
+            echo "Release exists; updating notes/title and uploading assets (clobber)."
+            gh release edit "${TAG_NAME}" --title "${title}" --notes-file "${NOTES_FILE}"
+            if (( ${#files[@]} > 0 )); then
+              gh release upload "${TAG_NAME}" "${files[@]}" --clobber
+            fi
+          else
+            echo "Release does not exist; creating."
+            if (( ${#files[@]} > 0 )); then
+              gh release create "${TAG_NAME}" "${files[@]}" --title "${title}" --notes-file "${NOTES_FILE}"
+            else
+              gh release create "${TAG_NAME}" --title "${title}" --notes-file "${NOTES_FILE}"
+            fi
+          fi

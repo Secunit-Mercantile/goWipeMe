@@ -1,0 +1,58 @@
+version: 2
+
+updates:
+  # ----------------------------
+  # GitHub Actions (root)
+  # ----------------------------
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(ci)"
+    labels:
+      - "dependencies"
+      - "ci"
+
+  # ----------------------------
+  # Go module (root)
+  # ----------------------------
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(go)"
+    labels:
+      - "dependencies"
+      - "go"
+    groups:
+      go-deps:
+        patterns:
+          - "*"
+
+  # ----------------------------
+  # Frontend (Svelte+Vite app)
+  # npm ecosystem is correct even if you use Bun + bun.lockb
+  # ----------------------------
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 8
+    commit-message:
+      prefix: "deps(frontend)"
+    labels:
+      - "dependencies"
+      - "frontend"
+      - "svelte"
+      - "bun"
+    groups:
+      frontend-deps:
+        patterns:
+          - "*"
