@@ -1,0 +1,83 @@
+version: 2
+
+updates:
+  # ----------------------------
+  # GitHub Actions (root)
+  # ----------------------------
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(ci)"
+    labels:
+      - "dependencies"
+      - "ci"
+
+  # ----------------------------
+  # Go service (apps/api)
+  # ----------------------------
+  - package-ecosystem: "gomod"
+    directory: "/apps/api"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(go)"
+    labels:
+      - "dependencies"
+      - "go"
+    groups:
+      go-deps:
+        patterns:
+          - "*"
+
+  # ----------------------------
+  # Astro+Bun app (apps/web)
+  # npm ecosystem is correct even if you use Bun + bun.lockb
+  # ----------------------------
+  - package-ecosystem: "npm"
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 8
+    commit-message:
+      prefix: "deps(web)"
+    labels:
+      - "dependencies"
+      - "web"
+      - "astro"
+      - "bun"
+    groups:
+      astro-core:
+        patterns:
+          - "astro"
+          - "@astrojs/*"
+      web-deps:
+        patterns:
+          - "*"
+
+  # ----------------------------
+  # Shared JS packages (optional)
+  # Remove this block if you don't have /packages
+  # ----------------------------
+  - package-ecosystem: "npm"
+    directory: "/packages"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 8
+    commit-message:
+      prefix: "deps(pkgs)"
+    labels:
+      - "dependencies"
+      - "web"
+      - "bun"
+    groups:
+      packages-deps:
+        patterns:
+          - "*"
