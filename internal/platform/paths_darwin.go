@@ -1,36 +1,7 @@
-package darwin
+//go:build darwin
+// +build darwin
 
-import (
-	"os"
-	"path/filepath"
-)
-
-// GetHomeDir returns the user's home directory
-func GetHomeDir() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-	return home, nil
-}
-
-// ExpandPath expands ~ to the home directory
-func ExpandPath(path string) (string, error) {
-	if len(path) == 0 || path[0] != '~' {
-		return path, nil
-	}
-
-	home, err := GetHomeDir()
-	if err != nil {
-		return "", err
-	}
-
-	if len(path) == 1 {
-		return home, nil
-	}
-
-	return filepath.Join(home, path[1:]), nil
-}
+package platform
 
 // Browser history paths
 func GetSafariHistoryPath() (string, error) {
@@ -83,3 +54,5 @@ func GetCachesPath() (string, error) {
 func GetRecentDocumentsPath() (string, error) {
 	return ExpandPath("~/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.ApplicationRecentDocuments")
 }
+
+

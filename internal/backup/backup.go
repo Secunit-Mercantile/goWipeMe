@@ -9,7 +9,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/mat/gowipeme/internal/platform/darwin"
+	"github.com/mat/gowipeme/internal/platform"
 )
 
 // BackupInfo contains metadata about a backup
@@ -55,11 +55,11 @@ func (bm *BackupManager) getBackupItems() []backupItem {
 		name   string
 		getter func() (string, error)
 	}{
-		{"Safari History", darwin.GetSafariHistoryPath},
-		{"Chrome History", darwin.GetChromeHistoryPath},
-		{"Edge History", darwin.GetEdgeHistoryPath},
-		{"Brave History", darwin.GetBraveHistoryPath},
-		{"Arc History", darwin.GetArcHistoryPath},
+		{"Safari History", platform.GetSafariHistoryPath},
+		{"Chrome History", platform.GetChromeHistoryPath},
+		{"Edge History", platform.GetEdgeHistoryPath},
+		{"Brave History", platform.GetBraveHistoryPath},
+		{"Arc History", platform.GetArcHistoryPath},
 	}
 
 	for _, browser := range browsers {
@@ -71,7 +71,7 @@ func (bm *BackupManager) getBackupItems() []backupItem {
 	}
 
 	// Firefox uses profiles, find first profile with places.sqlite
-	if profilesPath, err := darwin.GetFirefoxProfilesPath(); err == nil {
+	if profilesPath, err := platform.GetFirefoxProfilesPath(); err == nil {
 		entries, err := os.ReadDir(profilesPath)
 		if err == nil {
 			for _, entry := range entries {
@@ -91,9 +91,9 @@ func (bm *BackupManager) getBackupItems() []backupItem {
 		name   string
 		getter func() (string, error)
 	}{
-		{"Bash History", darwin.GetBashHistoryPath},
-		{"Zsh History", darwin.GetZshHistoryPath},
-		{"Fish History", darwin.GetFishHistoryPath},
+		{"Bash History", platform.GetBashHistoryPath},
+		{"Zsh History", platform.GetZshHistoryPath},
+		{"Fish History", platform.GetFishHistoryPath},
 	}
 
 	for _, shell := range shells {

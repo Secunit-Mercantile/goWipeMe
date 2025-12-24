@@ -2,6 +2,7 @@ package cleaner
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -106,7 +107,14 @@ func Summary(dryRunResults map[string][]string) string {
 
 	sb.WriteString(fmt.Sprintf("Total items to clean: %d\n\n", totalItems))
 
-	for cleanerName, items := range dryRunResults {
+	names := make([]string, 0, len(dryRunResults))
+	for cleanerName := range dryRunResults {
+		names = append(names, cleanerName)
+	}
+	sort.Strings(names)
+
+	for _, cleanerName := range names {
+		items := dryRunResults[cleanerName]
 		sb.WriteString(fmt.Sprintf("%s (%d items):\n", cleanerName, len(items)))
 		for _, item := range items {
 			sb.WriteString(fmt.Sprintf("  - %s\n", item))

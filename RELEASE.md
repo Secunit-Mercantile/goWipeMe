@@ -40,11 +40,11 @@ The push triggers `.github/workflows/release.yml` which:
 1. ✅ **Runs tests** on all code
 2. 🔨 **Builds TUI** for:
    - macOS (Intel & Apple Silicon)
-   - Linux (AMD64 & ARM64)
+   - Linux (AMD64, ARM64, RISC-V 64)
    - Windows (AMD64)
 3. 🖥️ **Builds GUI** for:
    - macOS (Universal, Intel, Apple Silicon)
-   - Linux (AMD64 & ARM64)
+   - Linux (AMD64 & ARM64) *(ARM64 runs on `ubuntu-24.04-arm`)*
    - Windows (AMD64)
 4. 📦 **Compresses** all binaries
 5. 🚀 **Creates GitHub Release** with all assets
@@ -53,7 +53,7 @@ The push triggers `.github/workflows/release.yml` which:
 
 Check the Actions tab:
 ```
-https://github.com/YOUR_USERNAME/gowipeme/actions
+https://github.com/Secunit-Mercantile/goWipeMe/actions
 ```
 
 Build takes approximately 15-20 minutes.
@@ -62,7 +62,7 @@ Build takes approximately 15-20 minutes.
 
 Once complete, the release appears at:
 ```
-https://github.com/YOUR_USERNAME/gowipeme/releases
+https://github.com/Secunit-Mercantile/goWipeMe/releases
 ```
 
 ## Build Matrix
@@ -75,6 +75,7 @@ https://github.com/YOUR_USERNAME/gowipeme/releases
 | macOS | Apple Silicon (ARM64) | `gowipeme-tui-macos-apple-silicon.tar.gz` |
 | Linux | AMD64 | `gowipeme-tui-linux-amd64.tar.gz` |
 | Linux | ARM64 | `gowipeme-tui-linux-arm64.tar.gz` |
+| Linux | RISC-V 64 | `gowipeme-tui-linux-riscv64.tar.gz` |
 | Windows | AMD64 | `gowipeme-tui-windows-amd64.zip` |
 
 ### GUI Binaries
@@ -86,6 +87,7 @@ https://github.com/YOUR_USERNAME/gowipeme/releases
 | macOS | Apple Silicon (ARM64) | `gowipeme-gui-macos-apple-silicon.tar.gz` |
 | Linux | AMD64 | `gowipeme-gui-linux-amd64.tar.gz` |
 | Linux | ARM64 | `gowipeme-gui-linux-arm64.tar.gz` |
+| Linux | RISC-V 64 | *(best-effort; may be omitted if unsupported by Wails)* |
 | Windows | AMD64 | `gowipeme-gui-windows-amd64.zip` |
 
 ## Optimizations Applied
@@ -137,6 +139,8 @@ Test the release workflow components locally:
 GOOS=darwin GOARCH=amd64 make build-tui-release
 GOOS=darwin GOARCH=arm64 make build-tui-release
 GOOS=linux GOARCH=amd64 make build-tui-release
+GOOS=linux GOARCH=arm64 make build-tui-release
+GOOS=linux GOARCH=riscv64 make build-tui-release
 GOOS=windows GOARCH=amd64 make build-tui-release
 
 # Build GUI variants

@@ -1,12 +1,14 @@
 package cleaner
 
 import (
-	"bytes"
 	"fmt"
 	"os"
-	"os/exec"
+	"path/filepath"
+	"runtime"
 
-	"github.com/mat/gowipeme/internal/platform/darwin"
+	"github.com/atotto/clipboard"
+
+	"github.com/mat/gowipeme/internal/platform"
 )
 
 // ShellCleaner handles cleaning shell history
@@ -29,30 +31,47 @@ func NewShellCleaner() *ShellCleaner {
 // discoverHistoryFiles finds shell history files
 func (sc *ShellCleaner) discoverHistoryFiles() {
 	// Bash history
-	if path, err := darwin.GetBashHistoryPath(); err == nil {
+	if path, err := platform.GetBashHistoryPath(); err == nil {
 		if _, err := os.Stat(path); err == nil {
 			sc.historyFiles["Bash"] = path
 		}
 	}
 
 	// Zsh history
-	if path, err := darwin.GetZshHistoryPath(); err == nil {
+	if path, err := platform.GetZshHistoryPath(); err == nil {
 		if _, err := os.Stat(path); err == nil {
 			sc.historyFiles["Zsh"] = path
 		}
 	}
 
 	// Zsh sessions directory
-	if path, err := darwin.GetZshSessionsPath(); err == nil {
+	if path, err := platform.GetZshSessionsPath(); err == nil {
 		if info, err := os.Stat(path); err == nil && info.IsDir() {
 			sc.historyFiles["Zsh Sessions"] = path
 		}
 	}
 
 	// Fish history
-	if path, err := darwin.GetFishHistoryPath(); err == nil {
+	if path, err := platform.GetFishHistoryPath(); err == nil {
 		if _, err := os.Stat(path); err == nil {
 			sc.historyFiles["Fish"] = path
+		}
+	}
+
+	// PowerShell history (Windows)
+	if runtime.GOOS == "windows" {
+		// PSReadLine history (PowerShell 5+ / 7+)
+		appData := os.Getenv("APPDATA")
+		if appData == "" {
+			if home, err := platform.GetHomeDir(); err == nil {
+				appData = filepath.Join(home, "AppData", "Roaming")
+			}
+		}
+		if appData != "" {
+			psHistory := filepath.Join(appData, "Microsoft", "Windows", "PowerShell", "PSReadLine", "ConsoleHost_history.txt")
+			if _, err := os.Stat(psHistory); err == nil {
+				sc.historyFiles["PowerShell"] = psHistory
+			}
 		}
 	}
 }
@@ -131,16 +150,10 @@ func (cc *ClipboardCleaner) DryRun() ([]string, error) {
 	return []string{"System clipboard will be cleared"}, nil
 }
 
-// Clean clears the system clipboard using pbcopy
+// Clean clears the system clipboard using a cross-platform clipboard provider.
 func (cc *ClipboardCleaner) Clean() error {
-	// Use pbcopy to clear clipboard
-	cmd := exec.Command("pbcopy")
-	cmd.Stdin = bytes.NewReader([]byte(""))
-
-	err := cmd.Run()
-	if err != nil {
+	if err := clipboard.WriteAll(""); err != nil {
 		return fmt.Errorf("failed to clear clipboard: %w", err)
 	}
-
 	return nil
 }

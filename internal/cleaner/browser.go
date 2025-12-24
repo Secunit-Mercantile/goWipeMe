@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
-	"github.com/mat/gowipeme/internal/platform/darwin"
+	"github.com/mat/gowipeme/internal/platform"
 )
 
 // BrowserCleaner handles cleaning browser history
@@ -28,21 +29,30 @@ func NewBrowserCleaner() *BrowserCleaner {
 // discoverBrowsers finds installed browsers and their history paths
 func (bc *BrowserCleaner) discoverBrowsers() {
 	// Safari
-	if path, err := darwin.GetSafariHistoryPath(); err == nil {
+	if path, err := platform.GetSafariHistoryPath(); err == nil {
 		if _, err := os.Stat(path); err == nil {
 			bc.browsers["Safari"] = path
 		}
 	}
 
 	// Chrome
-	if path, err := darwin.GetChromeHistoryPath(); err == nil {
+	if path, err := platform.GetChromeHistoryPath(); err == nil {
 		if _, err := os.Stat(path); err == nil {
 			bc.browsers["Chrome"] = path
 		}
 	}
 
+	// Chromium (Linux)
+	if runtime.GOOS == "linux" {
+		if path, err := platform.ExpandPath("~/.config/chromium/Default/History"); err == nil {
+			if _, err := os.Stat(path); err == nil {
+				bc.browsers["Chromium"] = path
+			}
+		}
+	}
+
 	// Firefox (check for profiles)
-	if profilesPath, err := darwin.GetFirefoxProfilesPath(); err == nil {
+	if profilesPath, err := platform.GetFirefoxProfilesPath(); err == nil {
 		profiles, err := filepath.Glob(filepath.Join(profilesPath, "*/places.sqlite"))
 		if err == nil {
 			for _, profile := range profiles {
@@ -53,21 +63,21 @@ func (bc *BrowserCleaner) discoverBrowsers() {
 	}
 
 	// Edge
-	if path, err := darwin.GetEdgeHistoryPath(); err == nil {
+	if path, err := platform.GetEdgeHistoryPath(); err == nil {
 		if _, err := os.Stat(path); err == nil {
 			bc.browsers["Edge"] = path
 		}
 	}
 
 	// Brave
-	if path, err := darwin.GetBraveHistoryPath(); err == nil {
+	if path, err := platform.GetBraveHistoryPath(); err == nil {
 		if _, err := os.Stat(path); err == nil {
 			bc.browsers["Brave"] = path
 		}
 	}
 
 	// Arc
-	if path, err := darwin.GetArcHistoryPath(); err == nil {
+	if path, err := platform.GetArcHistoryPath(); err == nil {
 		if _, err := os.Stat(path); err == nil {
 			bc.browsers["Arc"] = path
 		}

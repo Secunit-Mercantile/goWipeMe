@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mat/gowipeme/internal/platform/darwin"
+	"github.com/mat/gowipeme/internal/platform"
 )
 
 // CacheCleaner handles cleaning application caches
@@ -22,7 +22,7 @@ func NewCacheCleaner() *CacheCleaner {
 	}
 
 	// Get cache path
-	path, err := darwin.GetCachesPath()
+	path, err := platform.GetCachesPath()
 	if err == nil {
 		cc.cachePath = path
 	}

@@ -16,27 +16,14 @@
 
 [![Release](https://img.shields.io/github/v/release/Secunit-Mercantile/goWipeMe)](https://github.com/Secunit-Mercantile/goWipeMe/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Go Version](https://img.shields.io/badge/go-1.21+-00ADD8.svg)](https://golang.org)
+[![Go Version](https://img.shields.io/badge/go-1.25+-00ADD8.svg)](https://golang.org)
 [![CI](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml/badge.svg)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
 
-**Build Status** - All binaries are built and tested in CI
+**CI Build Matrix**
 
-TUI: 
-[![TUI macOS Intel](https://img.shields.io/badge/TUI%20macOS%20Intel-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
-[![TUI macOS Apple Silicon](https://img.shields.io/badge/TUI%20macOS%20Apple%20Silicon-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
-[![TUI Linux AMD64](https://img.shields.io/badge/TUI%20Linux%20AMD64-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
-[![TUI Linux ARM64](https://img.shields.io/badge/TUI%20Linux%20ARM64-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
-[![TUI Linux RISC-V 64](https://img.shields.io/badge/TUI%20Linux%20RISC--V%2064-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
-[![TUI Windows AMD64](https://img.shields.io/badge/TUI%20Windows%20AMD64-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
-
-GUI: 
-[![GUI macOS Universal](https://img.shields.io/badge/GUI%20macOS%20Universal-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
-[![GUI macOS Intel](https://img.shields.io/badge/GUI%20macOS%20Intel-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
-[![GUI macOS Apple Silicon](https://img.shields.io/badge/GUI%20macOS%20Apple%20Silicon-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
-[![GUI Linux AMD64](https://img.shields.io/badge/GUI%20Linux%20AMD64-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
-[![GUI Linux ARM64](https://img.shields.io/badge/GUI%20Linux%20ARM64-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
-[![GUI Linux RISC-V 64](https://img.shields.io/badge/GUI%20Linux%20RISC--V%2064-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
-[![GUI Windows AMD64](https://img.shields.io/badge/GUI%20Windows%20AMD64-passing-brightgreen)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
+- **TUI**: macOS (Intel, Apple Silicon), Linux (AMD64, ARM64, RISC-V 64), Windows (AMD64)
+- **GUI**: macOS (Universal, Intel, Apple Silicon), Linux (AMD64, ARM64), Windows (AMD64)
+- **GUI Linux RISC-V 64**: best-effort (may be skipped if unsupported by Wails)
 
 </div>
 <br />
@@ -55,11 +42,22 @@ GUI:
 - View backup details (timestamp, size, items)
 
 ### 🧹 Clear All History
-- **Browser History**: Safari, Chrome, Firefox, Edge, Brave, Arc
-- **Shell History**: Bash, Zsh, Fish
-- **Application Caches**: `~/Library/Caches/` (selective)
-- **Recent Files**: macOS recent documents and servers
-- **Clipboard**: Clear clipboard contents
+- **Browser History**:
+  - macOS: Safari, Chrome, Firefox, Edge, Brave, Arc
+  - Linux: Chrome, Chromium, Firefox, Edge, Brave
+  - Windows: Chrome, Firefox, Edge, Brave
+- **Shell History**:
+  - macOS/Linux: Bash, Zsh, Fish
+  - Windows: PowerShell (plus Bash/Zsh/Fish files if present, e.g. Git Bash/MSYS)
+- **Application Caches**:
+  - macOS: `~/Library/Caches/` (selective)
+  - Linux: `~/.cache/`
+  - Windows: `%LOCALAPPDATA%\Temp`
+- **Recent Files**:
+  - macOS: sharedfilelist `.sfl2` (documents/servers/hosts/apps)
+  - Linux: `recently-used.xbel`
+  - Windows: Recent items + Jump Lists
+- **Clipboard**: Clear clipboard contents (cross-platform; Linux may require a clipboard provider like `xclip`/`wl-clipboard`)
 - **Dry-run preview** before deletion
 
 ### 🔒 Secure Wipe Free Space
@@ -118,7 +116,7 @@ gowipeme-gui.exe
 ### Build from Source
 
 **Requirements:**
-- Go 1.21+
+- Go 1.25+
 - Node.js 22 LTS
 - Bun 1.0+
 - Wails v2 (for GUI only)
@@ -133,7 +131,7 @@ make build-tui
 ./gowipeme
 
 # Build GUI (requires Wails)
-go install github.com/wailsapp/wails/v2/cmd/wails@latest
+go install github.com/wailsapp/wails/v2/cmd/wails@v2.11.0
 make frontend-deps
 make build-gui
 make sign-and-run  # macOS only
@@ -173,17 +171,13 @@ Use arrow keys to navigate the menu:
 - ✅ Windows 10/11 (AMD64)
 
 ### Browsers Supported
-- Safari
-- Google Chrome
-- Mozilla Firefox
-- Microsoft Edge
-- Brave
-- Arc
+- **macOS**: Safari, Chrome, Firefox, Edge, Brave, Arc
+- **Linux**: Chrome, Chromium, Firefox, Edge, Brave
+- **Windows**: Chrome, Firefox, Edge, Brave
 
 ### Shells Supported
-- Bash
-- Zsh
-- Fish
+- **macOS/Linux**: Bash, Zsh, Fish
+- **Windows**: PowerShell (plus Bash/Zsh/Fish files if present)
 
 ---
 
@@ -193,7 +187,7 @@ Use arrow keys to navigate the menu:
 - **Browser Databases**: SQLite history files
 - **Shell Files**: `.bash_history`, `.zsh_history`, Fish history
 - **Cache Directories**: Application cache folders
-- **Recent Files**: macOS `.sfl2` recent documents
+- **Recent Files**: macOS `.sfl2`, Linux `recently-used.xbel`, Windows Recent + Jump Lists
 - **Clipboard**: In-memory clipboard contents
 
 ### Wiping Algorithms

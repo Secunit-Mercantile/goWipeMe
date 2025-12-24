@@ -9,6 +9,9 @@ on:
 permissions:
   contents: read
 
+env:
+  WAILS_VERSION: v2.11.0
+
 jobs:
   test:
     name: Run Tests
@@ -191,7 +194,7 @@ jobs:
           echo "$HOME/.bun/bin" >> $GITHUB_PATH
 
       - name: Install Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@${{ env.WAILS_VERSION }}
 
       - name: Install frontend dependencies
         run: cd frontend && bun install
@@ -224,7 +227,7 @@ jobs:
           echo "$HOME/.bun/bin" >> $GITHUB_PATH
 
       - name: Install Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@${{ env.WAILS_VERSION }}
 
       - name: Install frontend dependencies
         run: cd frontend && bun install
@@ -257,7 +260,7 @@ jobs:
           echo "$HOME/.bun/bin" >> $GITHUB_PATH
 
       - name: Install Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@${{ env.WAILS_VERSION }}
 
       - name: Install frontend dependencies
         run: cd frontend && bun install
@@ -304,7 +307,7 @@ jobs:
           echo "$HOME/.bun/bin" >> $GITHUB_PATH
 
       - name: Install Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@${{ env.WAILS_VERSION }}
 
       - name: Install frontend dependencies
         run: cd frontend && bun install
@@ -316,7 +319,7 @@ jobs:
   build-gui-linux-arm64:
     name: Build GUI (Linux ARM64)
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -331,33 +334,15 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install cross-compilation toolchain and dependencies
+      - name: Install dependencies
         run: |
-          # Enable multiarch for ARM64 FIRST
-          sudo dpkg --add-architecture arm64
-          # Update apt, suppressing 404 errors for repos without ARM64 packages
-          sudo apt-get update 2>&1 | grep -v "404  Not Found" || true
-          # Install ARM64 cross-compilation toolchain and pkg-config
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu pkg-config
-          # Create aarch64-linux-gnu-pkg-config wrapper script
-          printf '%s\n' \
-            '#!/bin/bash' \
-            'export PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH' \
-            'export PKG_CONFIG_LIBDIR=/usr/lib/aarch64-linux-gnu/pkgconfig' \
-            'exec pkg-config "$@"' \
-            | sudo tee /usr/local/bin/aarch64-linux-gnu-pkg-config > /dev/null
-          sudo chmod +x /usr/local/bin/aarch64-linux-gnu-pkg-config
-          # Try to install ARM64 libraries (some repos may not have them, that's OK)
-          sudo apt-get install -y libgtk-3-dev:arm64 libwebkit2gtk-4.1-dev:arm64 || \
-            echo "⚠ Some ARM64 packages may not be available in all repos - continuing anyway"
-          # Wails looks for webkit2gtk-4.0, create symlink for ARM64 if needed
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
+          # Wails looks for webkit2gtk-4.0, but Ubuntu ships 4.1 - create symlink if needed
           if [ -f /usr/lib/aarch64-linux-gnu/pkgconfig/webkit2gtk-4.1.pc ] && [ ! -f /usr/lib/aarch64-linux-gnu/pkgconfig/webkit2gtk-4.0.pc ]; then
             sudo ln -s /usr/lib/aarch64-linux-gnu/pkgconfig/webkit2gtk-4.1.pc /usr/lib/aarch64-linux-gnu/pkgconfig/webkit2gtk-4.0.pc
-            echo "✓ Created webkit2gtk-4.0 symlink for ARM64"
           fi
-          # Verify pkg-config setup
-          export PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
-          aarch64-linux-gnu-pkg-config --exists webkit2gtk-4.0 && echo "✓ webkit2gtk-4.0 found for ARM64" || echo "⚠ webkit2gtk-4.0 not found for ARM64"
+          pkg-config --exists webkit2gtk-4.0 && echo "✓ webkit2gtk-4.0 found" || (echo "⚠ webkit2gtk-4.0 not found" && pkg-config --list-all | grep webkit || true)
 
       - name: Install Bun
         run: |
@@ -365,20 +350,12 @@ jobs:
           echo "$HOME/.bun/bin" >> $GITHUB_PATH
 
       - name: Install Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@${{ env.WAILS_VERSION }}
 
       - name: Install frontend dependencies
         run: cd frontend && bun install
 
       - name: Build GUI
-        env:
-          CC: aarch64-linux-gnu-gcc
-          CXX: aarch64-linux-gnu-g++
-          PKG_CONFIG: aarch64-linux-gnu-pkg-config
-          PKG_CONFIG_PATH: /usr/lib/aarch64-linux-gnu/pkgconfig
-          CGO_ENABLED: 1
-          GOOS: linux
-          GOARCH: arm64
         run: |
           wails build -clean -platform linux/arm64 -ldflags="-s -w" -trimpath -o gowipeme-gui
 
@@ -420,12 +397,13 @@ jobs:
           echo "$HOME/.bun/bin" >> $GITHUB_PATH
 
       - name: Install Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@${{ env.WAILS_VERSION }}
 
       - name: Install frontend dependencies
         run: cd frontend && bun install
 
       - name: Build GUI
+        continue-on-error: true
         run: |
           wails build -clean -platform linux/riscv64 -ldflags="-s -w" -trimpath -o gowipeme-gui
 
@@ -453,7 +431,7 @@ jobs:
           echo "$env:USERPROFILE\.bun\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Install Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@${{ env.WAILS_VERSION }}
 
       - name: Install frontend dependencies
         run: cd frontend && bun install

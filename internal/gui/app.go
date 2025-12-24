@@ -3,6 +3,7 @@ package gui
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/mat/gowipeme/internal/backup"
@@ -57,8 +58,15 @@ func (a *App) GetCleanerStatus() ([]CleanerInfo, error) {
 		return nil, err
 	}
 
-	infos := make([]CleanerInfo, 0)
-	for cleanerName, items := range dryRunResults {
+	names := make([]string, 0, len(dryRunResults))
+	for cleanerName := range dryRunResults {
+		names = append(names, cleanerName)
+	}
+	sort.Strings(names)
+
+	infos := make([]CleanerInfo, 0, len(names))
+	for _, cleanerName := range names {
+		items := dryRunResults[cleanerName]
 		infos = append(infos, CleanerInfo{
 			Name:  cleanerName,
 			Items: items,

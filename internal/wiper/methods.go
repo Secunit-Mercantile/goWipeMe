@@ -2,10 +2,13 @@ package wiper
 
 import (
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
+	"syscall"
 	"time"
 )
 
@@ -119,7 +122,7 @@ func writePass(tempDir string, targetBytes int64, pattern byte, currentPass, tot
 		buffer[i] = pattern
 	}
 
-	return writeBuffer(tempDir, targetBytes, buffer, currentPass, totalPasses, methodName, progressChan, startTime)
+	return writeBuffer(tempDir, targetBytes, buffer, currentPass, totalPasses, methodName, false, progressChan, startTime)
 }
 
 // writePassRandom writes a single pass with random data
@@ -127,19 +130,15 @@ func writePassRandom(tempDir string, targetBytes int64, currentPass, totalPasses
 	const bufferSize = 1024 * 1024 // 1 MB buffer
 	buffer := make([]byte, bufferSize)
 
-	return writeBuffer(tempDir, targetBytes, buffer, currentPass, totalPasses, methodName, progressChan, startTime)
+	return writeBuffer(tempDir, targetBytes, buffer, currentPass, totalPasses, methodName, true, progressChan, startTime)
 }
 
 // writeBuffer writes data to fill the target space
-func writeBuffer(tempDir string, targetBytes int64, buffer []byte, currentPass, totalPasses int, methodName string, progressChan chan<- Progress, startTime time.Time) error {
-	var totalWritten int64 = 0
+func writeBuffer(tempDir string, targetBytes int64, buffer []byte, currentPass, totalPasses int, methodName string, random bool, progressChan chan<- Progress, startTime time.Time) error {
+	var passWritten int64 = 0
 	fileIndex := 0
 
-	// For random passes, we need to regenerate the buffer each time
-	isRandom := methodName == fmt.Sprintf("Gutmann Pass %d/35 (Random)", currentPass) ||
-		methodName == "DoD Pass 3/3 (Random)"
-
-	for totalWritten < targetBytes {
+	for passWritten < targetBytes {
 		// Create a new file for this chunk
 		filePath := filepath.Join(tempDir, fmt.Sprintf("wipe_%d_pass%d.tmp", fileIndex, currentPass))
 		file, err := os.Create(filePath)
@@ -148,7 +147,7 @@ func writeBuffer(tempDir string, targetBytes int64, buffer []byte, currentPass, 
 		}
 
 		// Write up to target size
-		remaining := targetBytes - totalWritten
+		remaining := targetBytes - passWritten
 		fileSize := int64(0)
 
 		for fileSize < remaining {
@@ -158,7 +157,7 @@ func writeBuffer(tempDir string, targetBytes int64, buffer []byte, currentPass, 
 			}
 
 			// For random passes, generate new random data
-			if isRandom {
+			if random {
 				_, err = rand.Read(buffer[:writeSize])
 				if err != nil {
 					file.Close()
@@ -170,21 +169,23 @@ func writeBuffer(tempDir string, targetBytes int64, buffer []byte, currentPass, 
 			if err != nil {
 				file.Close()
 				// Disk might be full, which is expected
-				if err == io.ErrShortWrite || err.Error() == "no space left on device" {
+				if errors.Is(err, io.ErrShortWrite) || errors.Is(err, syscall.ENOSPC) || strings.Contains(strings.ToLower(err.Error()), "no space left") {
 					break
 				}
 				return fmt.Errorf("failed to write: %w", err)
 			}
 
 			fileSize += int64(n)
-			totalWritten += int64(n)
+			passWritten += int64(n)
 
 			// Send progress update
 			if progressChan != nil {
 				elapsed := time.Since(startTime)
+				overallWritten := (int64(currentPass-1) * targetBytes) + passWritten
+				totalBytes := targetBytes * int64(totalPasses)
 				progress := Progress{
-					BytesWritten:  totalWritten,
-					TotalBytes:    targetBytes * int64(totalPasses),
+					BytesWritten:  overallWritten,
+					TotalBytes:    totalBytes,
 					CurrentPass:   currentPass,
 					TotalPasses:   totalPasses,
 					CurrentMethod: methodName,
@@ -192,9 +193,9 @@ func writeBuffer(tempDir string, targetBytes int64, buffer []byte, currentPass, 
 				}
 
 				// Estimate remaining time
-				if totalWritten > 0 {
-					bytesPerSecond := float64(totalWritten) / elapsed.Seconds()
-					remainingBytes := (targetBytes * int64(totalPasses)) - totalWritten
+				if overallWritten > 0 && elapsed.Seconds() > 0 {
+					bytesPerSecond := float64(overallWritten) / elapsed.Seconds()
+					remainingBytes := totalBytes - overallWritten
 					progress.EstimatedTime = time.Duration(float64(remainingBytes)/bytesPerSecond) * time.Second
 				}
 
@@ -202,7 +203,7 @@ func writeBuffer(tempDir string, targetBytes int64, buffer []byte, currentPass, 
 			}
 
 			// Check if we've reached the target
-			if totalWritten >= targetBytes {
+			if passWritten >= targetBytes {
 				break
 			}
 		}
