@@ -81,7 +81,7 @@ jobs:
           zip gowipeme-tui-${{ matrix.name }}.zip gowipeme.exe
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: tui-${{ matrix.name }}
           path: gowipeme-tui-${{ matrix.name }}.*
@@ -134,7 +134,7 @@ jobs:
           tar -czf ../../gowipeme-gui-${{ matrix.name }}.tar.gz goWipeMe.app
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: gui-${{ matrix.name }}
           path: gowipeme-gui-${{ matrix.name }}.tar.gz
@@ -236,7 +236,7 @@ jobs:
 
       - name: Upload artifact
         if: steps.check_build.outputs.build_success == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: gui-${{ matrix.name }}
           path: gowipeme-gui-${{ matrix.name }}.tar.gz
@@ -280,7 +280,7 @@ jobs:
           Compress-Archive -Path gowipeme-gui.exe -DestinationPath ../../gowipeme-gui-windows-amd64.zip
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: gui-windows-amd64
           path: gowipeme-gui-windows-amd64.zip
