@@ -157,6 +157,8 @@ make sign-and-run  # macOS only
 ```
 
 Use arrow keys to navigate the menu:
+- **Backup** - Save your data before cleaning
+- **Restore** - Restore from a previous backup
 - **Clear All History** - Preview and confirm deletion
 - **Secure Wipe Free Space** - Select method and confirm
 - **Exit** - Quit the program
