@@ -1,6 +1,9 @@
 <div align="center">
   <img src="assets/gowipeme-logo.png" alt="goWipeMe Logo" width="350"/>
   
+  <p style="margin-top: 20px; margin-bottom: 10px; color: #666; font-size: 0.9em;">Another open source tool for the community from</p>
+  <p style="margin-top: 5px; margin-bottom: 15px;"><a href="https://secunit.io/"><img src="assets/horizontal.png" alt="Secunit Mercantile" width="200" style="vertical-align: middle;"></a></p>
+  
   <p><strong>Privacy tool for macOS, Linux, and Windows</strong></p>
   
   <p><em>Written in <a href="https://golang.org">Go</a> <img src="assets/go-logo.svg" alt="Go Logo" width="20" height="20" style="vertical-align: middle;"></em></p>
@@ -18,12 +21,6 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/go-1.25+-00ADD8.svg)](https://golang.org)
 [![CI](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml/badge.svg)](https://github.com/Secunit-Mercantile/goWipeMe/actions/workflows/ci.yml)
-
-**CI Build Matrix**
-
-- **TUI**: macOS (Intel, Apple Silicon), Linux (AMD64, ARM64, RISC-V 64), Windows (AMD64)
-- **GUI**: macOS (Universal, Intel, Apple Silicon), Linux (AMD64, ARM64), Windows (AMD64)
-- **GUI Linux RISC-V 64**: best-effort (may be skipped if unsupported by Wails)
 
 </div>
 <br />
@@ -223,6 +220,60 @@ To prevent system crashes from filling the disk:
 3. **Cleanup**: Remove all temporary files
 
 This ensures the OS always has breathing room (10% or 1GB minimum).
+
+---
+
+## ✅ Code Quality & Security
+
+We take code quality and security seriously. Here's what we do to ensure goWipeMe is reliable and safe to use:
+
+### Automated Testing
+
+Every time code changes are submitted, our automated testing system runs a full suite of tests to verify everything still works correctly. This means:
+
+- **Automated checks on every change** - Tests run automatically before any code is merged
+- **Cross-platform verification** - We test that the code works correctly across different operating systems
+- **Regression prevention** - Tests catch bugs before they reach you
+
+Tests must pass before any new version is released, giving you confidence that the software works as expected.
+
+### Dependency Management & Security
+
+We keep dependencies up to date and monitor them for security issues:
+
+- **Automated dependency updates** - Dependabot automatically checks for updates to our dependencies and suggests updates when available
+- **Security monitoring** - Dependencies are regularly reviewed for known security vulnerabilities
+- **Minimal dependencies** - We use a minimal set of well-maintained libraries to reduce the attack surface
+
+When security updates are available, they're prioritized and merged quickly to keep the software secure.
+
+### Build Verification
+
+Before any release, we build and test the application across all supported platforms:
+
+- **Multiple platform builds** - Every release is built for macOS (Intel & Apple Silicon), Linux (multiple architectures), and Windows
+- **Build verification** - Each build is verified to ensure it works correctly on its target platform
+- **Consistent releases** - All platforms receive the same tested, verified version
+
+This means you can trust that the version you download has been built correctly and works on your system.
+
+### Code Review Process
+
+All changes go through a review process before being merged:
+
+- **Quality checks** - Code is reviewed for correctness, safety, and maintainability
+- **Best practices** - We follow Go best practices and coding standards
+- **Documentation** - Changes are documented to help maintain the codebase over time
+
+### Transparency
+
+You can see our testing and build processes in action:
+
+- **Public CI/CD** - Our automated testing and builds run on GitHub Actions, which is publicly visible
+- **Open source** - All code is open source, so you can review it yourself if desired
+- **Release history** - All releases are documented with what changed and why
+
+We believe in transparency, so you can verify how the software is built and tested.
 
 ---
 
