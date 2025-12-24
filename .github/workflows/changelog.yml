@@ -1,0 +1,160 @@
+name: Update Changelog
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-changelog:
+    name: Update Changelog
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Get tag info
+        id: tag_info
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: |
+          # Use environment variable instead of direct interpolation
+          TAG_NAME="$GITHUB_REF_NAME"
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "version=${TAG_NAME#v}" >> $GITHUB_OUTPUT
+          echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+
+      - name: Get previous tag
+        id: prev_tag
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog entry
+        id: changelog
+        env:
+          TAG: ${{ steps.tag_info.outputs.tag_name }}
+          PREV_TAG: ${{ steps.prev_tag.outputs.prev_tag }}
+          DATE: ${{ steps.tag_info.outputs.date }}
+          VERSION: ${{ steps.tag_info.outputs.version }}
+        run: |
+          echo "Generating changelog for $TAG (previous: $PREV_TAG)"
+
+          # Get commits since last tag (or all if first release)
+          # Note: Commit messages are written to files, not executed as commands
+          if [ -n "$PREV_TAG" ]; then
+            git log --pretty=format:"%s" "$PREV_TAG".."$TAG" --no-merges > /tmp/commits.txt
+          else
+            git log --pretty=format:"%s" "$TAG" --no-merges > /tmp/commits.txt
+          fi
+
+          # Process commits safely by reading from file
+          # Categorize by conventional commit type using grep on file
+          {
+            echo "## [$VERSION] - $DATE"
+            echo ""
+
+            # Added (feat)
+            if grep -qE "^feat" /tmp/commits.txt 2>/dev/null; then
+              echo "### Added"
+              grep -E "^feat" /tmp/commits.txt | sed 's/^feat[^:]*: /- /' || true
+              echo ""
+            fi
+
+            # Fixed (fix)
+            if grep -qE "^fix" /tmp/commits.txt 2>/dev/null; then
+              echo "### Fixed"
+              grep -E "^fix" /tmp/commits.txt | sed 's/^fix[^:]*: /- /' || true
+              echo ""
+            fi
+
+            # Performance (perf)
+            if grep -qE "^perf" /tmp/commits.txt 2>/dev/null; then
+              echo "### Performance"
+              grep -E "^perf" /tmp/commits.txt | sed 's/^perf[^:]*: /- /' || true
+              echo ""
+            fi
+
+            # Changed (refactor)
+            if grep -qE "^refactor" /tmp/commits.txt 2>/dev/null; then
+              echo "### Changed"
+              grep -E "^refactor" /tmp/commits.txt | sed 's/^refactor[^:]*: /- /' || true
+              echo ""
+            fi
+
+            # Documentation (docs)
+            if grep -qE "^docs" /tmp/commits.txt 2>/dev/null; then
+              echo "### Documentation"
+              grep -E "^docs" /tmp/commits.txt | sed 's/^docs[^:]*: /- /' || true
+              echo ""
+            fi
+
+            # CI changes
+            if grep -qE "^ci" /tmp/commits.txt 2>/dev/null; then
+              echo "### CI/CD"
+              grep -E "^ci" /tmp/commits.txt | sed 's/^ci[^:]*: /- /' || true
+              echo ""
+            fi
+
+            # Other commits (not following conventional commits)
+            if grep -vE "^(feat|fix|docs|perf|refactor|test|chore|ci)" /tmp/commits.txt 2>/dev/null | grep -q .; then
+              echo "### Other"
+              grep -vE "^(feat|fix|docs|perf|refactor|test|chore|ci)" /tmp/commits.txt | sed 's/^/- /' || true
+              echo ""
+            fi
+          } > /tmp/changelog_entry.md
+
+          echo "Generated changelog entry:"
+          cat /tmp/changelog_entry.md
+
+      - name: Update CHANGELOG.md
+        env:
+          VERSION: ${{ steps.tag_info.outputs.version }}
+        run: |
+          # Check if this version already exists in changelog
+          if grep -q "## \[$VERSION\]" CHANGELOG.md; then
+            echo "Version $VERSION already in changelog, skipping update"
+            exit 0
+          fi
+
+          # Create new changelog with entry inserted after [Unreleased]
+          {
+            # Read until [Unreleased] section and print it
+            sed -n '1,/^## \[Unreleased\]/p' CHANGELOG.md
+
+            # Print content under Unreleased until next version section
+            sed -n '/^## \[Unreleased\]/,/^## \[/{ /^## \[Unreleased\]/d; /^## \[/d; p; }' CHANGELOG.md
+
+            # Print new entry
+            echo ""
+            cat /tmp/changelog_entry.md
+
+            # Print rest of file starting from first version section
+            sed -n '/^## \[[0-9]/,$p' CHANGELOG.md
+          } > CHANGELOG.md.new
+
+          mv CHANGELOG.md.new CHANGELOG.md
+
+          echo "Updated CHANGELOG.md:"
+          head -100 CHANGELOG.md
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "docs: update CHANGELOG.md for ${{ steps.tag_info.outputs.tag_name }}"
+          title: "docs: Update CHANGELOG.md for ${{ steps.tag_info.outputs.tag_name }}"
+          body: |
+            This PR updates the CHANGELOG.md with entries for release ${{ steps.tag_info.outputs.tag_name }}.
+
+            Auto-generated from conventional commits.
+          branch: changelog/${{ steps.tag_info.outputs.tag_name }}
+          base: main
+          labels: documentation,automated
