@@ -1,198 +1,414 @@
 <script>
   let { onNavigate } = $props()
+  let warningDismissed = $state(false)
 
-  function handleBackup() {
-    onNavigate('backup')
+  function dismissWarning() {
+    warningDismissed = true
   }
 
-  function handleRestore() {
-    onNavigate('restore')
-  }
-
-  function handleCleaner() {
-    onNavigate('cleaner')
-  }
-
-  function handleWiper() {
-    onNavigate('wiper')
-  }
+  const features = [
+    {
+      id: 'backup',
+      title: 'Backup',
+      description: 'Save browser and shell history before cleaning',
+      details: '6 browsers • 3 shells • Encrypted storage',
+      icon: 'backup',
+      color: 'blue',
+      action: () => onNavigate('backup')
+    },
+    {
+      id: 'restore',
+      title: 'Restore',
+      description: 'Recover data from previous backups',
+      details: 'Version control • Selective restore',
+      icon: 'restore',
+      color: 'teal',
+      action: () => onNavigate('restore')
+    },
+    {
+      id: 'cleaner',
+      title: 'Clear History',
+      description: 'Permanently delete browsing and shell history',
+      details: 'Browsers • Shells • Caches • Clipboard',
+      icon: 'cleaner',
+      color: 'orange',
+      action: () => onNavigate('cleaner')
+    },
+    {
+      id: 'wiper',
+      title: 'Secure Wipe',
+      description: 'Cryptographically wipe free disk space',
+      details: 'DoD 5220.22-M • Gutmann • 1-35 passes',
+      icon: 'wiper',
+      color: 'red',
+      action: () => onNavigate('wiper')
+    }
+  ]
 </script>
 
 <div class="home">
-  <div class="header">
-    <h1>goWipeMe</h1>
-    <p class="tagline">Privacy Tool for macOS</p>
-  </div>
-
-  <div class="cards">
-    <button class="card backup" onclick={handleBackup}>
-      <div class="card-icon">💾</div>
-      <h2>Backup</h2>
-      <p>Save your browser history, shell history, and other data before cleaning</p>
-      <div class="features">
-        <span class="badge">Browser History</span>
-        <span class="badge">Shell History</span>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="brand">
+        <h1 class="title gradient-text">goWipeMe</h1>
+        <div class="badge">PRO</div>
       </div>
-    </button>
+      <p class="subtitle">Professional Privacy & Security Suite</p>
+    </div>
 
-    <button class="card restore" onclick={handleRestore}>
-      <div class="card-icon">🔄</div>
-      <h2>Restore</h2>
-      <p>Restore previously backed up data from a saved backup</p>
-      <div class="features">
-        <span class="badge">View Backups</span>
-        <span class="badge">Restore Data</span>
+    <!-- Stats Bar -->
+    <div class="stats">
+      <div class="stat-item">
+        <div class="stat-value">6</div>
+        <div class="stat-label">Browsers</div>
       </div>
-    </button>
-
-    <button class="card cleaner" onclick={handleCleaner}>
-      <div class="card-icon">🧹</div>
-      <h2>Clear All History</h2>
-      <p>Remove browser history, shell history, caches, recent files, and clipboard</p>
-      <div class="features">
-        <span class="badge">6 Browsers</span>
-        <span class="badge">Shell History</span>
-        <span class="badge">App Caches</span>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-value">3</div>
+        <div class="stat-label">Shells</div>
       </div>
-    </button>
-
-    <button class="card wiper" onclick={handleWiper}>
-      <div class="card-icon">🔒</div>
-      <h2>Secure Wipe Free Space</h2>
-      <p>Securely wipe free disk space with multiple security levels</p>
-      <div class="features">
-        <span class="badge">Single Pass</span>
-        <span class="badge">DoD 5220.22-M</span>
-        <span class="badge">Gutmann</span>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-value">35</div>
+        <div class="stat-label">Max Passes</div>
       </div>
-    </button>
-  </div>
+    </div>
 
-  <div class="footer">
-    <p>All cleaning operations are irreversible. Create a backup first!</p>
+    <!-- Warning Banner -->
+    {#if !warningDismissed}
+      <div class="warning">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M10 0L0 18h20L10 0zm0 14a1 1 0 110-2 1 1 0 010 2zm0-3a1 1 0 01-1-1V7a1 1 0 012 0v3a1 1 0 01-1 1z"/>
+        </svg>
+        <span>Please perform a system backup in addition to the backup features offered below.</span>
+        <button class="warning-close" onclick={dismissWarning} aria-label="Dismiss warning">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 1l12 12M13 1L1 13"/>
+          </svg>
+        </button>
+      </div>
+    {/if}
+
+    <!-- Feature Cards -->
+    <div class="grid">
+      {#each features as feature}
+        <button class="card" onclick={feature.action}>
+          <div class="card-glow"></div>
+          <div class="card-header">
+            <div class="icon {feature.color}">
+              {#if feature.icon === 'backup'}
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                </svg>
+              {:else if feature.icon === 'restore'}
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 12a9 9 0 009 9 9.75 9.75 0 006.74-2.74M21 12A9 9 0 003.26 5.26M3 12V7m0 0h5m13 5v5m0 0h-5"/>
+                </svg>
+              {:else if feature.icon === 'cleaner'}
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/>
+                </svg>
+              {:else if feature.icon === 'wiper'}
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <path d="M9 12l2 2 4-4"/>
+                </svg>
+              {/if}
+            </div>
+            <div class="card-badge">{feature.color}</div>
+          </div>
+          <h3 class="card-title">{feature.title}</h3>
+          <p class="card-description">{feature.description}</p>
+          <div class="card-footer">
+            <span class="card-details">{feature.details}</span>
+            <svg class="card-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M6 12l4-4-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </button>
+      {/each}
+    </div>
   </div>
 </div>
 
 <style>
   .home {
     width: 100%;
-    height: 100%;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px;
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    background: var(--bg-primary);
+    padding: 40px 20px;
     overflow-y: auto;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
   }
 
   .header {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 32px;
   }
 
-  h1 {
-    font-size: 3rem;
-    font-weight: 700;
-    margin-bottom: 10px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  .brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .title {
+    font-size: 56px;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  .tagline {
-    font-size: 1.1rem;
-    color: #999;
+  .badge {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
   }
 
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-    max-width: 900px;
-    width: 100%;
-    margin-bottom: 30px;
+  .subtitle {
+    font-size: 16px;
+    color: var(--text-secondary);
+    font-weight: 500;
   }
 
-  .card {
-    background: #2a2a2a;
-    border: 2px solid #3a3a3a;
+  .stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 32px;
+    padding: 24px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
     border-radius: 16px;
-    padding: 30px 25px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+  }
+
+  .stat-item {
     text-align: center;
   }
 
-  .card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  .stat-value {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--accent-primary);
+    line-height: 1;
+    margin-bottom: 4px;
   }
 
-  .card.backup:hover {
-    border-color: #4ade80;
-    box-shadow: 0 8px 30px rgba(74, 222, 128, 0.2);
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
   }
 
-  .card.restore:hover {
-    border-color: #60a5fa;
-    box-shadow: 0 8px 30px rgba(96, 165, 250, 0.2);
+  .stat-divider {
+    width: 1px;
+    height: 40px;
+    background: var(--border-subtle);
   }
 
-  .card.cleaner:hover {
-    border-color: #f59e0b;
-    box-shadow: 0 8px 30px rgba(245, 158, 11, 0.2);
-  }
-
-  .card.wiper:hover {
-    border-color: #ef4444;
-    box-shadow: 0 8px 30px rgba(239, 68, 68, 0.2);
-  }
-
-  .card-icon {
-    font-size: 3rem;
-    margin-bottom: 15px;
-  }
-
-  .card h2 {
-    font-size: 1.3rem;
-    margin-bottom: 10px;
-    color: #fff;
-  }
-
-  .card p {
-    color: #aaa;
-    margin-bottom: 15px;
-    line-height: 1.5;
-    font-size: 0.9rem;
-  }
-
-  .features {
+  .warning {
+    position: relative;
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 18px 24px;
+    padding-right: 48px;
+    background: rgba(255, 107, 107, 0.05);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+    border-radius: 12px;
+    margin-bottom: 32px;
+  }
+
+  .warning svg {
+    flex-shrink: 0;
+    color: var(--accent-danger);
+  }
+
+  .warning span {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-align: center;
+  }
+
+  .warning-close {
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
     justify-content: center;
   }
 
-  .badge {
-    background: #3a3a3a;
-    padding: 4px 10px;
-    border-radius: 15px;
-    font-size: 0.75rem;
-    color: #999;
+  .warning-close:hover {
+    background: rgba(255, 107, 107, 0.1);
+    color: var(--accent-danger);
   }
 
-  .footer {
-    text-align: center;
-    color: #666;
-    font-size: 0.85rem;
-    max-width: 600px;
+  .warning-close svg {
+    color: inherit;
   }
 
-  @media (max-width: 700px) {
-    .cards {
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+
+  .card {
+    position: relative;
+    padding: 28px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
+    overflow: hidden;
+  }
+
+  .card-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+      transparent,
+      var(--accent-primary),
+      transparent
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: var(--border-medium);
+    box-shadow: var(--shadow-accent);
+  }
+
+  .card:hover .card-glow {
+    opacity: 1;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg,
+      rgba(32, 227, 178, 0.1),
+      rgba(32, 227, 178, 0.05)
+    );
+    border: 1px solid rgba(32, 227, 178, 0.2);
+  }
+
+  .icon svg {
+    color: var(--accent-primary);
+  }
+
+  .card-badge {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .card-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+  }
+
+  .card-description {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-details {
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-tertiary);
+  }
+
+  .card-arrow {
+    color: var(--accent-primary);
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: all 0.3s ease;
+  }
+
+  .card:hover .card-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .grid {
       grid-template-columns: 1fr;
+    }
+
+    .title {
+      font-size: 36px;
+    }
+
+    .stats {
+      gap: 20px;
     }
   }
 </style>

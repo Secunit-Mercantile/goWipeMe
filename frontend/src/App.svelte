@@ -1,13 +1,24 @@
 <script>
+  import { onMount } from 'svelte'
+  import { EventsOn } from '../wailsjs/runtime/runtime'
   import Splash from './components/Splash.svelte'
   import Home from './components/Home.svelte'
   import Backup from './components/Backup.svelte'
   import Restore from './components/Restore.svelte'
   import Cleaner from './components/Cleaner.svelte'
   import Wiper from './components/Wiper.svelte'
+  import About from './components/About.svelte'
 
   let showSplash = $state(true)
+  let showAbout = $state(false)
   let currentView = $state('home') // 'home', 'backup', 'restore', 'cleaner', 'wiper'
+
+  onMount(() => {
+    // Listen for the show-about event from the menu
+    EventsOn('show-about', () => {
+      showAbout = true
+    })
+  })
 
   function handleSplashComplete() {
     showSplash = false
@@ -39,6 +50,8 @@
     <Wiper onBack={goHome} />
   {/if}
 </main>
+
+<About bind:isOpen={showAbout} />
 
 <style>
   main {

@@ -18,6 +18,10 @@ export function GetCleanerStatus() {
   return window['go']['gui']['App']['GetCleanerStatus']();
 }
 
+export function GetContext() {
+  return window['go']['gui']['App']['GetContext']();
+}
+
 export function GetWiperStatus() {
   return window['go']['gui']['App']['GetWiperStatus']();
 }
