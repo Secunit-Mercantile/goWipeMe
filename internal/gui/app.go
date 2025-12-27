@@ -25,6 +25,11 @@ func NewApp() *App {
 	return &App{}
 }
 
+// GetContext returns the application context
+func (a *App) GetContext() context.Context {
+	return a.ctx
+}
+
 // Startup is called when the app starts
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx

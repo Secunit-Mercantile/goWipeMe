@@ -1,0 +1,380 @@
+/* Import fonts */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Courier+Prime:wght@400;700&family=Archivo+Black&family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+/* Base reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+}
+
+/* ============================================
+   TERMINAL HACKER THEME
+   ============================================ */
+body[data-theme="terminal"] {
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-tertiary: #111111;
+
+  --text-primary: #00FF41;
+  --text-secondary: #00CC33;
+  --text-muted: #008822;
+  --text-inverse: #000000;
+
+  --accent-primary: #00FF41;
+  --accent-warning: #FFB000;
+  --accent-danger: #FF0000;
+  --accent-info: #00FFFF;
+
+  --border-primary: #00FF41;
+  --border-secondary: #008822;
+
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'JetBrains Mono', monospace;
+
+  --shadow-glow: 0 0 20px rgba(0, 255, 65, 0.3);
+  --shadow-glow-strong: 0 0 30px rgba(0, 255, 65, 0.6);
+
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+/* Terminal scanline effect */
+body[data-theme="terminal"]::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 255, 65, 0.03) 0px,
+    transparent 1px,
+    transparent 2px,
+    rgba(0, 255, 65, 0.03) 3px
+  );
+  pointer-events: none;
+  z-index: 9999;
+  animation: scanline 8s linear infinite;
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(10px);
+  }
+}
+
+/* Terminal cursor blink */
+@keyframes terminal-blink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0;
+  }
+}
+
+.terminal-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1em;
+  background: var(--accent-primary);
+  animation: terminal-blink 1s infinite;
+  margin-left: 2px;
+}
+
+/* Terminal text glow */
+body[data-theme="terminal"] h1,
+body[data-theme="terminal"] h2,
+body[data-theme="terminal"] .glow-text {
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.8),
+               0 0 20px rgba(0, 255, 65, 0.4);
+}
+
+/* ============================================
+   REDACTION THEME
+   ============================================ */
+body[data-theme="redaction"] {
+  --bg-primary: #F5E6C8;
+  --bg-secondary: #EBD9B4;
+  --bg-tertiary: #E0CDA0;
+  --bg-paper: #F8F1E0;
+
+  --text-primary: #1a1a1a;
+  --text-secondary: #333333;
+  --text-muted: #666666;
+  --text-stamp: #C41E3A;
+  --text-classified: #FFFFFF;
+
+  --accent-primary: #1a1a1a;
+  --accent-danger: #C41E3A;
+  --accent-warning: #8B4513;
+  --accent-classified: #000000;
+
+  --border-primary: #8B7355;
+  --border-secondary: #B8997A;
+
+  --font-serif: 'Courier Prime', monospace;
+  --font-sans: 'Archivo Black', sans-serif;
+  --font-mono: 'Courier Prime', monospace;
+
+  --shadow-paper: 2px 2px 8px rgba(0, 0, 0, 0.15);
+  --shadow-stamp: 2px 2px 4px rgba(196, 30, 58, 0.3);
+
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+}
+
+/* Paper texture */
+body[data-theme="redaction"]::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Redaction bar effect */
+.redaction-bar {
+  background: var(--accent-classified);
+  color: transparent;
+  position: relative;
+  display: inline-block;
+  padding: 2px 8px;
+  margin: 0 4px;
+}
+
+/* Stamp effect */
+.stamp {
+  display: inline-block;
+  border: 3px solid var(--text-stamp);
+  color: var(--text-stamp);
+  padding: 8px 16px;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  text-transform: uppercase;
+  transform: rotate(-5deg);
+  letter-spacing: 2px;
+  box-shadow: var(--shadow-stamp);
+  opacity: 0.85;
+}
+
+/* Typewriter effect */
+@keyframes typewriter {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* Coffee stain */
+.coffee-stain {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139, 69, 19, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ============================================
+   MACOS NATIVE THEME
+   ============================================ */
+body[data-theme="macos"] {
+  --bg-primary: #1c1c1e;
+  --bg-secondary: #2c2c2e;
+  --bg-tertiary: #3a3a3c;
+  --bg-card: rgba(44, 44, 46, 0.7);
+  --bg-elevated: rgba(58, 58, 60, 0.8);
+
+  --text-primary: #ffffff;
+  --text-secondary: rgba(235, 235, 245, 0.6);
+  --text-tertiary: rgba(235, 235, 245, 0.3);
+
+  --accent-blue: #0A84FF;
+  --accent-green: #30D158;
+  --accent-red: #FF453A;
+  --accent-orange: #FF9F0A;
+  --accent-teal: #64D2FF;
+
+  --separator: rgba(84, 84, 88, 0.65);
+  --separator-opaque: #38383a;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+  --font-mono: 'SF Mono', ui-monospace, 'Cascadia Code', 'Source Code Pro', monospace;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+  --blur-amount: 20px;
+
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* macOS vibrancy and blur effects */
+body[data-theme="macos"] .glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(var(--blur-amount)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur-amount)) saturate(180%);
+}
+
+body[data-theme="macos"] .glass-elevated {
+  background: var(--bg-elevated);
+  backdrop-filter: blur(var(--blur-amount)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur-amount)) saturate(180%);
+}
+
+/* ============================================
+   DARK REFINED THEME
+   ============================================ */
+body[data-theme="refined"] {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #121212;
+  --bg-tertiary: #1a1a1a;
+  --bg-elevated: #1e1e1e;
+
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --text-tertiary: #6b6b6b;
+
+  --accent-primary: #20E3B2;
+  --accent-secondary: #14b89f;
+  --accent-hover: #1bffce;
+  --accent-danger: #FF6B6B;
+  --accent-warning: #FFB020;
+
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.12);
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.7);
+  --shadow-accent: 0 8px 24px rgba(32, 227, 178, 0.15);
+
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Refined gradient accents */
+body[data-theme="refined"] .gradient-text {
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+body[data-theme="refined"] .gradient-border {
+  position: relative;
+  border: 1px solid transparent;
+  background: linear-gradient(var(--bg-secondary), var(--bg-secondary)) padding-box,
+              linear-gradient(135deg, var(--accent-primary), var(--accent-hover)) border-box;
+}
+
+/* ============================================
+   SHARED UTILITIES
+   ============================================ */
+
+/* Custom scrollbar for macos */
+body[data-theme="macos"] ::-webkit-scrollbar {
+  width: 10px;
+  background: transparent;
+}
+
+body[data-theme="macos"] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+body[data-theme="macos"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+  background-clip: padding-box;
+}
+
+/* Custom scrollbar for refined */
+body[data-theme="refined"] ::-webkit-scrollbar {
+  width: 8px;
+  background: var(--bg-secondary);
+}
+
+body[data-theme="refined"] ::-webkit-scrollbar-thumb {
+  background: var(--accent-primary);
+  border-radius: 4px;
+}
+
+body[data-theme="refined"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-hover);
+}
+
+/* Custom scrollbar for terminal */
+body[data-theme="terminal"] ::-webkit-scrollbar {
+  width: 12px;
+  background: var(--bg-secondary);
+}
+
+body[data-theme="terminal"] ::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+  border: 2px solid var(--bg-secondary);
+}
+
+body[data-theme="terminal"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+  box-shadow: var(--shadow-glow);
+}
+
+/* Scrollbar for redaction */
+body[data-theme="redaction"] ::-webkit-scrollbar {
+  width: 12px;
+  background: var(--bg-tertiary);
+}
+
+body[data-theme="redaction"] ::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+  border: 2px solid var(--bg-tertiary);
+}
+
+/* Transitions */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Selection styles */
+body[data-theme="terminal"] ::selection {
+  background: var(--accent-primary);
+  color: var(--bg-primary);
+}
+
+body[data-theme="redaction"] ::selection {
+  background: var(--accent-classified);
+  color: var(--text-classified);
+}

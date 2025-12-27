@@ -1,4 +1,4 @@
-.PHONY: build-tui build-gui build-gui-release build-gui-universal install clean test dev-tui dev-gui frontend-deps sign-and-run help
+.PHONY: build-tui build-gui build-gui-release build-gui-universal install clean test dev-tui dev-gui dev-gui-verbose dev-gui-status dev-gui-kill frontend-deps sign-and-run help
 
 # Go build flags for optimized release
 LDFLAGS := -s -w
@@ -40,6 +40,14 @@ install: build-tui-release
 	@sudo cp gowipeme /usr/local/bin/
 	@echo "✓ Installed to /usr/local/bin"
 
+# Kill stuck dev server processes
+dev-gui-kill:
+	@echo "Killing dev server processes..."
+	@pkill -f "wails dev" || true
+	@pkill -f "vite" || true
+	@pkill -f "bun.*dev" || true
+	@echo "✓ Dev server processes killed"
+
 # Clean build artifacts
 clean:
 	@echo "Cleaning build artifacts..."
@@ -59,7 +67,41 @@ dev-tui: build-tui
 # Run Wails dev server (GUI)
 dev-gui:
 	@echo "Starting Wails dev server..."
+	@echo "Checking for existing processes..."
+	@if pgrep -f "wails dev" > /dev/null || pgrep -f "vite" > /dev/null || pgrep -f "bun.*dev" > /dev/null; then \
+		echo "⚠️  Warning: Existing dev server processes detected!"; \
+		echo "   Run 'make dev-gui-kill' first to clean up, or press Ctrl+C and kill them manually"; \
+		echo ""; \
+	fi
+	@echo ""
+	@echo "Timeline:"
+	@echo "  1. 'Compiling frontend:' appears → Vite starts (usually <1 second)"
+	@echo "  2. Vite shows 'ready' → Wails connects and builds (10-30 seconds)"
+	@echo "  3. GUI window opens → You're ready!"
+	@echo ""
+	@echo "⚠️  After Vite says 'ready', WAIT 10-30 seconds for the GUI window to appear"
+	@echo "   The process is working - Wails just doesn't show progress during connection"
+	@echo ""
+	@echo "📋 Check the terminal output above for any errors if window doesn't appear"
+	@echo ""
 	@wails dev
+
+# Run Wails dev server with verbose output (for debugging)
+dev-gui-verbose:
+	@echo "Starting Wails dev server with verbose output..."
+	@wails dev -v 2 -loglevel Debug 2>&1 | tee wails-dev.log
+
+# Check if dev server processes are running
+dev-gui-status:
+	@echo "Checking dev server status..."
+	@echo ""
+	@echo "Running processes:"
+	@ps aux | grep -E "(wails|vite|bun.*dev)" | grep -v grep || echo "  No dev server processes found"
+	@echo ""
+	@echo "Checking if Vite is responding on port 5173:"
+	@curl -s -o /dev/null -w "  HTTP Status: %{http_code}\n" http://localhost:5173 2>&1 || echo "  Vite server not responding"
+	@echo ""
+	@echo "To kill stuck processes, run: make dev-gui-kill"
 
 # Install frontend dependencies with Bun
 frontend-deps:
@@ -84,6 +126,9 @@ help:
 	@echo "  Development:"
 	@echo "    make dev-tui        - Build and run TUI"
 	@echo "    make dev-gui        - Run Wails dev server"
+	@echo "    make dev-gui-verbose - Run Wails dev server with verbose output"
+	@echo "    make dev-gui-status - Check if dev server is running"
+	@echo "    make dev-gui-kill   - Kill stuck dev server processes"
 	@echo ""
 	@echo "  Build:"
 	@echo "    make build-tui      - Build the TUI binary"

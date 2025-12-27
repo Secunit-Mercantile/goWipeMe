@@ -174,12 +174,13 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    background: #1a1a1a;
+    background: var(--bg-primary);
+    font-family: var(--font-sans);
   }
 
   .header {
     padding: 30px 40px;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--border-subtle);
     display: flex;
     align-items: center;
     gap: 20px;
@@ -187,21 +188,26 @@
 
   .header h1 {
     font-size: 2rem;
+    font-weight: 700;
     margin: 0;
+    color: var(--text-primary);
   }
 
   .back-btn {
-    background: #2a2a2a;
-    border: 1px solid #3a3a3a;
-    color: #fff;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
     padding: 10px 20px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
   }
 
   .back-btn:hover {
-    background: #3a3a3a;
+    background: var(--bg-tertiary);
+    border-color: var(--border-medium);
   }
 
   .content {
@@ -222,8 +228,8 @@
   .spinner, .spinner-large {
     width: 50px;
     height: 50px;
-    border: 4px solid #333;
-    border-top-color: #667eea;
+    border: 4px solid var(--bg-tertiary);
+    border-top-color: var(--accent-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 20px;
@@ -240,15 +246,17 @@
   }
 
   .volume-info {
-    background: #2a2a2a;
-    border: 1px solid #3a3a3a;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
     border-radius: 12px;
     padding: 30px;
     margin-bottom: 40px;
   }
 
   .volume-info h2 {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+    color: var(--text-primary);
+    font-weight: 700;
   }
 
   .info-grid {
@@ -259,8 +267,8 @@
   .info-item {
     display: flex;
     justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid #333;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-subtle);
   }
 
   .info-item:last-child {
@@ -268,17 +276,19 @@
   }
 
   .label {
-    color: #999;
+    color: var(--text-secondary);
   }
 
   .value {
-    color: #fff;
+    color: var(--accent-primary);
     font-weight: 600;
   }
 
   .method-selection h2 {
     margin-bottom: 30px;
     font-size: 1.5rem;
+    color: var(--text-primary);
+    font-weight: 700;
   }
 
   .methods {
@@ -287,8 +297,8 @@
   }
 
   .method-card {
-    background: #2a2a2a;
-    border: 2px solid #3a3a3a;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-subtle);
     border-radius: 12px;
     padding: 25px;
     cursor: pointer;
@@ -298,18 +308,20 @@
   }
 
   .method-card:hover {
-    border-color: #667eea;
+    border-color: var(--accent-primary);
     transform: translateX(5px);
+    box-shadow: var(--shadow-accent);
   }
 
   .method-card h3 {
     margin-bottom: 10px;
-    color: #667eea;
+    color: var(--accent-primary);
     font-size: 1.2rem;
+    font-weight: 600;
   }
 
   .method-card p {
-    color: #aaa;
+    color: var(--text-secondary);
     line-height: 1.6;
   }
 
@@ -319,17 +331,19 @@
     top: 50%;
     transform: translateY(-50%);
     font-size: 1.5rem;
-    color: #667eea;
+    color: var(--accent-primary);
   }
 
   .confirm h2 {
     margin-bottom: 30px;
     font-size: 1.8rem;
+    color: var(--text-primary);
+    font-weight: 700;
   }
 
   .confirm-details {
-    background: #2a2a2a;
-    border: 1px solid #3a3a3a;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
     border-radius: 12px;
     padding: 25px;
     margin-bottom: 30px;
@@ -338,19 +352,25 @@
   .confirm-details p {
     margin: 10px 0;
     font-size: 1.1rem;
+    color: var(--text-secondary);
+  }
+
+  .confirm-details strong {
+    color: var(--text-primary);
   }
 
   .warning-box {
-    background: rgba(239, 68, 68, 0.1);
-    border: 2px solid rgba(239, 68, 68, 0.3);
+    background: rgba(255, 107, 107, 0.08);
+    border: 2px solid var(--accent-danger);
     border-radius: 12px;
     padding: 25px;
     margin-bottom: 40px;
   }
 
   .warning-box h3 {
-    color: #ef4444;
+    color: var(--accent-danger);
     margin-bottom: 15px;
+    font-weight: 700;
   }
 
   .warning-box ul {
@@ -360,12 +380,12 @@
 
   .warning-box li {
     padding: 8px 0;
-    color: #ffcccc;
+    color: var(--text-secondary);
   }
 
   .warning-box li::before {
     content: "• ";
-    color: #ef4444;
+    color: var(--accent-danger);
     font-weight: bold;
   }
 
@@ -376,69 +396,83 @@
   }
 
   .primary-btn, .secondary-btn {
-    padding: 15px 40px;
+    padding: 14px 40px;
     border-radius: 8px;
     font-size: 1rem;
     cursor: pointer;
     border: none;
     font-weight: 600;
     transition: all 0.3s ease;
+    font-family: var(--font-sans);
   }
 
   .primary-btn {
-    background: #667eea;
-    color: white;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+    color: var(--bg-primary);
+    box-shadow: var(--shadow-accent);
   }
 
   .primary-btn:hover {
-    background: #5568d3;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(32, 227, 178, 0.25);
   }
 
   .primary-btn.danger {
-    background: #ef4444;
+    background: var(--accent-danger);
+    box-shadow: 0 8px 24px rgba(255, 107, 107, 0.15);
   }
 
   .primary-btn.danger:hover {
-    background: #dc2626;
+    background: #ff5252;
+    box-shadow: 0 12px 32px rgba(255, 107, 107, 0.25);
   }
 
   .secondary-btn {
-    background: #2a2a2a;
-    color: white;
-    border: 1px solid #3a3a3a;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
   }
 
   .secondary-btn:hover {
-    background: #3a3a3a;
+    background: var(--bg-tertiary);
+    border-color: var(--border-medium);
   }
 
   .success-icon {
     font-size: 5rem;
     margin-bottom: 20px;
-    color: #4ade80;
+    color: var(--accent-primary);
+    text-shadow: 0 0 20px rgba(32, 227, 178, 0.4);
   }
 
   .complete h2 {
-    color: #4ade80;
+    color: var(--accent-primary);
     margin-bottom: 15px;
+    font-weight: 700;
+  }
+
+  .complete p {
+    color: var(--text-secondary);
   }
 
   .progress-info {
     margin-top: 30px;
-    color: #999;
+    color: var(--text-secondary);
   }
 
   .error {
-    color: #ef4444;
+    color: var(--accent-danger);
   }
 
   .error button {
     margin-top: 20px;
-    padding: 10px 30px;
-    background: #667eea;
-    color: white;
+    padding: 12px 32px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+    color: var(--bg-primary);
     border: none;
     border-radius: 8px;
     cursor: pointer;
+    font-weight: 600;
+    font-family: var(--font-sans);
   }
 </style>

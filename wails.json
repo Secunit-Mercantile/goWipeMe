@@ -4,7 +4,7 @@
   "outputfilename": "gowipeme-gui",
   "frontend:install": "bun install",
   "frontend:build": "bun run build",
-  "frontend:dev": "bun run dev",
+  "frontend:dev": "cd frontend && npx vite",
   "frontend:dev:watcher": "bun run dev",
   "frontend:dir": "frontend",
   "wailsjsdir": "./frontend",
@@ -12,15 +12,19 @@
   "reloaddirs": "frontend/src",
   "build:dir": "build",
   "debounceMS": 750,
+  "viteservertimeout": 60,
   "author": {
     "name": "mat",
-    "email": "mat@example.com"
+    "email": "matt@mattevans.cloud"
   },
   "info": {
-    "companyName": "mat",
+    "companyName": "secunit mercantile",
     "productName": "goWipeMe",
     "productVersion": "1.0.0",
-    "copyright": "Copyright.........\u0026copy;",
+    "copyright": "Copyright © 2025 secunit mercantile",
     "comments": "Privacy tool for macOS"
+  },
+  "mac": {
+    "icon": "assets/icon.png"
   }
 }

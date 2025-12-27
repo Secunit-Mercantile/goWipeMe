@@ -10,5 +10,8 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-  }
+    strictPort: true, // Fail if port is already in use
+    host: true, // Expose to network (helps with detection)
+  },
+  logLevel: 'info', // Ensure Vite outputs info level logs
 })

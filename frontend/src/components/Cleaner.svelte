@@ -119,12 +119,13 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    background: #1a1a1a;
+    background: var(--bg-primary);
+    font-family: var(--font-sans);
   }
 
   .header {
     padding: 30px 40px;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--border-subtle);
     display: flex;
     align-items: center;
     gap: 20px;
@@ -132,21 +133,26 @@
 
   .header h1 {
     font-size: 2rem;
+    font-weight: 700;
     margin: 0;
+    color: var(--text-primary);
   }
 
   .back-btn {
-    background: #2a2a2a;
-    border: 1px solid #3a3a3a;
-    color: #fff;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
     padding: 10px 20px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
   }
 
   .back-btn:hover {
-    background: #3a3a3a;
+    background: var(--bg-tertiary);
+    border-color: var(--border-medium);
   }
 
   .content {
@@ -167,8 +173,8 @@
   .spinner {
     width: 50px;
     height: 50px;
-    border: 4px solid #333;
-    border-top-color: #667eea;
+    border: 4px solid var(--bg-tertiary);
+    border-top-color: var(--accent-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
@@ -180,17 +186,24 @@
   .success-icon {
     font-size: 5rem;
     margin-bottom: 20px;
-    color: #4ade80;
+    color: var(--accent-primary);
+    text-shadow: 0 0 20px rgba(32, 227, 178, 0.4);
   }
 
   .success h2 {
-    color: #4ade80;
+    color: var(--accent-primary);
     margin-bottom: 10px;
+  }
+
+  .success p {
+    color: var(--text-secondary);
   }
 
   .preview h2 {
     margin-bottom: 30px;
     font-size: 1.5rem;
+    color: var(--text-primary);
+    font-weight: 700;
   }
 
   .cleaners-list {
@@ -200,16 +213,23 @@
   }
 
   .cleaner-card {
-    background: #2a2a2a;
-    border: 1px solid #3a3a3a;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
     border-radius: 12px;
-    padding: 20px;
+    padding: 24px;
+    transition: all 0.3s ease;
+  }
+
+  .cleaner-card:hover {
+    border-color: var(--border-medium);
+    box-shadow: var(--shadow-md);
   }
 
   .cleaner-card h3 {
     margin-bottom: 15px;
-    color: #667eea;
+    color: var(--accent-primary);
     font-size: 1.1rem;
+    font-weight: 600;
   }
 
   .cleaner-card ul {
@@ -219,8 +239,8 @@
 
   .cleaner-card li {
     padding: 8px 0;
-    border-bottom: 1px solid #333;
-    color: #aaa;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
     font-size: 0.9rem;
   }
 
@@ -229,17 +249,18 @@
   }
 
   .warning {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: rgba(255, 107, 107, 0.08);
+    border: 1px solid var(--accent-danger);
     border-radius: 8px;
-    padding: 15px;
+    padding: 16px;
     margin-bottom: 30px;
     text-align: center;
   }
 
   .warning p {
-    color: #ef4444;
+    color: var(--accent-danger);
     font-weight: 600;
+    margin: 0;
   }
 
   .actions {
@@ -249,58 +270,85 @@
   }
 
   .primary-btn, .secondary-btn {
-    padding: 15px 40px;
+    padding: 14px 40px;
     border-radius: 8px;
     font-size: 1rem;
     cursor: pointer;
     border: none;
     font-weight: 600;
     transition: all 0.3s ease;
+    font-family: var(--font-sans);
   }
 
   .primary-btn {
-    background: #667eea;
-    color: white;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+    color: var(--bg-primary);
+    box-shadow: var(--shadow-accent);
   }
 
   .primary-btn:hover {
-    background: #5568d3;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(32, 227, 178, 0.25);
   }
 
   .primary-btn.danger {
-    background: #ef4444;
+    background: var(--accent-danger);
+    box-shadow: 0 8px 24px rgba(255, 107, 107, 0.15);
   }
 
   .primary-btn.danger:hover {
-    background: #dc2626;
+    background: #ff5252;
+    box-shadow: 0 12px 32px rgba(255, 107, 107, 0.25);
   }
 
   .primary-btn:disabled {
-    background: #444;
+    background: var(--bg-tertiary);
+    color: var(--text-tertiary);
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
   }
 
   .secondary-btn {
-    background: #2a2a2a;
-    color: white;
-    border: 1px solid #3a3a3a;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
   }
 
   .secondary-btn:hover {
-    background: #3a3a3a;
+    background: var(--bg-tertiary);
+    border-color: var(--border-medium);
   }
 
   .error {
-    color: #ef4444;
+    color: var(--accent-danger);
   }
 
   .error button {
     margin-top: 20px;
-    padding: 10px 30px;
-    background: #667eea;
-    color: white;
+    padding: 12px 32px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+    color: var(--bg-primary);
     border: none;
     border-radius: 8px;
     cursor: pointer;
+    font-weight: 600;
+    font-family: var(--font-sans);
+  }
+
+  .empty {
+    color: var(--text-secondary);
+  }
+
+  .empty button {
+    margin-top: 20px;
+    padding: 12px 32px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-family: var(--font-sans);
   }
 </style>
